@@ -63,7 +63,7 @@ export default function OnboardPage() {
   }
 
   function validateStep2() {
-    return data.adminName.trim() !== "" && data.adminEmail.trim() !== "" && data.adminPassword.trim() !== "";
+    return data.adminName.trim() !== "" && data.adminEmail.trim() !== "" && data.adminPassword.trim().length >= 8;
   }
 
   async function handleConfirm() {

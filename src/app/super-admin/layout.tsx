@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session) redirect("/login");
-  if ((session.user as { role?: string }).role !== "SUPER_ADMIN") redirect("/dashboard");
+  if (session.user.role !== "SUPER_ADMIN") redirect("/dashboard");
 
   return (
     <div style={{ fontFamily: "'DM Mono','Courier New',monospace", background: "#080b12", minHeight: "100vh", color: "#e2e8f0" }}>

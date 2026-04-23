@@ -75,21 +75,28 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
   const [addLoading, setAddLoading] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
 
-  async function loadSchool() {
-    try {
-      const data = await api.superAdmin.schools.get(schoolId);
-      setSchool(data as SchoolDetail);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load school");
-    } finally {
-      setLoading(false);
-    }
-  }
-
   useEffect(() => {
-    loadSchool();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    api.superAdmin.schools.get(schoolId)
+      .then((data) => {
+        if (!cancelled) setSchool(data as SchoolDetail);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load school");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [schoolId]);
+
+  const refreshSchool = () => {
+    api.superAdmin.schools.get(schoolId)
+      .then((data) => setSchool(data as SchoolDetail))
+      .catch(() => {}); // silent refresh — user sees the current data still
+  };
 
   async function handleAddUser(e: React.FormEvent) {
     e.preventDefault();
@@ -99,13 +106,16 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
       setAddError("Name, email and password are required.");
       return;
     }
+    if (addForm.password.trim().length < 8) {
+      alert("Password must be at least 8 characters.");
+      return;
+    }
     setAddLoading(true);
     try {
       await api.superAdmin.schools.addUser(schoolId, addForm);
       setAddForm({ name: "", email: "", password: "", role: "USER" });
       setAddSuccess(true);
-      setLoading(true);
-      await loadSchool();
+      refreshSchool();
     } catch (err) {
       setAddError(err instanceof Error ? err.message : "Failed to add user");
     } finally {
@@ -235,7 +245,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
                 <input
                   style={inputStyle}
                   value={addForm.name}
-                  onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                  onChange={(e) => { setAddSuccess(false); setAddForm({ ...addForm, name: e.target.value }); }}
                   placeholder="Full name"
                 />
               </div>
@@ -245,7 +255,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
                   style={inputStyle}
                   type="email"
                   value={addForm.email}
-                  onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
+                  onChange={(e) => { setAddSuccess(false); setAddForm({ ...addForm, email: e.target.value }); }}
                   placeholder="user@school.edu"
                 />
               </div>
@@ -255,7 +265,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
                   style={inputStyle}
                   type="password"
                   value={addForm.password}
-                  onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
+                  onChange={(e) => { setAddSuccess(false); setAddForm({ ...addForm, password: e.target.value }); }}
                   placeholder="Min 8 characters"
                 />
               </div>
@@ -264,7 +274,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
                 <select
                   style={inputStyle}
                   value={addForm.role}
-                  onChange={(e) => setAddForm({ ...addForm, role: e.target.value as AddUserForm["role"] })}
+                  onChange={(e) => { setAddSuccess(false); setAddForm({ ...addForm, role: e.target.value as AddUserForm["role"] }); }}
                 >
                   <option value="USER">USER</option>
                   <option value="SCHOOL_ADMIN">SCHOOL_ADMIN</option>
