@@ -8,6 +8,7 @@ import TabNav from "@/components/TabNav";
 import SectionsView from "@/components/SectionsView";
 import ListView from "@/components/ListView";
 import FaultsView from "@/components/FaultsView";
+import LoansView from "@/components/LoansView";
 import { api } from "@/lib/api-client";
 import type { Item } from "@/components/ItemChip";
 
@@ -251,7 +252,12 @@ export default function DashboardPage() {
           />
         )}
         {tab === "loans" && (
-          <div style={{ color: "#4b5563", fontSize: 12 }}>Loans view placeholder</div>
+          <LoansView
+            items={items as Item[]}
+            onSelectItem={openItem}
+            onReturn={item => setModal({ type: "return", item: item as unknown })}
+            onLoanOut={item => setModal({ type: "loanout", item: item as unknown })}
+          />
         )}
       </div>
 
