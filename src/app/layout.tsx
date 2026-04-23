@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "Investory Map",
@@ -18,7 +19,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body style={{ margin: 0, background: "#080b12" }}>{children}</body>
+      <body style={{ margin: 0, background: "#080b12" }}>
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   );
 }
