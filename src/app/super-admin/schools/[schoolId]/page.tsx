@@ -75,6 +75,8 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
   const [addLoading, setAddLoading] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
 
+  const [roleChanging, setRoleChanging] = useState<string | null>(null); // userId being updated
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -97,6 +99,27 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
       .then((data) => setSchool(data as SchoolDetail))
       .catch(() => {}); // silent refresh — user sees the current data still
   };
+
+  async function handleRoleChange(userId: string, newRole: string) {
+    const user = school?.users.find((u) => u.id === userId);
+    if (!user) return;
+    const isSuperAdmin = newRole === "SUPER_ADMIN";
+    const confirm = window.confirm(
+      isSuperAdmin
+        ? `Promote ${user.name} to SUPER_ADMIN? This gives platform-wide access and removes them from this school.`
+        : `Change ${user.name}'s role to ${newRole}?`
+    );
+    if (!confirm) return;
+    setRoleChanging(userId);
+    try {
+      await api.superAdmin.users.updateRole(userId, newRole);
+      refreshSchool();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to update role");
+    } finally {
+      setRoleChanging(null);
+    }
+  }
 
   async function handleAddUser(e: React.FormEvent) {
     e.preventDefault();
@@ -212,17 +235,27 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
                   <td style={{ padding: "8px 8px", color: "#e2e8f0" }}>{u.name}</td>
                   <td style={{ padding: "8px 8px", color: "#94a3b8" }}>{u.email}</td>
                   <td style={{ padding: "8px 8px" }}>
-                    <span style={{
-                      fontSize: 11,
-                      padding: "2px 7px",
-                      borderRadius: 4,
-                      background: "#111827",
-                      color: ROLE_BADGE_COLOR[u.role] ?? "#94a3b8",
-                      border: `1px solid ${ROLE_BADGE_COLOR[u.role] ?? "#94a3b8"}33`,
-                      fontWeight: 600,
-                    }}>
-                      {u.role}
-                    </span>
+                    <select
+                      value={u.role}
+                      disabled={roleChanging === u.id}
+                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                      style={{
+                        background: "#111827",
+                        border: `1px solid ${ROLE_BADGE_COLOR[u.role] ?? "#94a3b8"}55`,
+                        borderRadius: 4,
+                        color: ROLE_BADGE_COLOR[u.role] ?? "#94a3b8",
+                        fontSize: 11,
+                        padding: "2px 6px",
+                        fontWeight: 600,
+                        fontFamily: "'DM Mono','Courier New',monospace",
+                        cursor: roleChanging === u.id ? "not-allowed" : "pointer",
+                        opacity: roleChanging === u.id ? 0.5 : 1,
+                      }}
+                    >
+                      <option value="USER">USER</option>
+                      <option value="SCHOOL_ADMIN">SCHOOL_ADMIN</option>
+                      <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                    </select>
                   </td>
                   <td style={{ padding: "8px 8px", color: "#64748b", fontSize: 12 }}>
                     {new Date(u.createdAt).toLocaleDateString()}
