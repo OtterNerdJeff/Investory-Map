@@ -141,6 +141,13 @@ export const api = {
           body: JSON.stringify(data),
         }),
     },
+    users: {
+      updateRole: (userId: string, role: string) =>
+        apiFetch<unknown>(`/api/super-admin/users/${userId}`, {
+          method: "PUT",
+          body: JSON.stringify({ role }),
+        }),
+    },
     stats: () => apiFetch<unknown>("/api/super-admin/stats"),
   },
 };
