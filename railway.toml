@@ -1,0 +1,8 @@
+[build]
+buildCommand = "npm run build"
+
+[deploy]
+startCommand = "npx prisma db push && npm start"
+healthcheckPath = "/login"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
