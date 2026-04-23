@@ -181,6 +181,30 @@ describe("POST /api/items/[itemId]/repairs", () => {
     expect(res.status).toBe(400);
     expect(prisma.repair.create).not.toHaveBeenCalled();
   });
+
+  it("returns 400 when cost is not a valid number", async () => {
+    (requireSession as any).mockResolvedValue({
+      id: "user1",
+      role: "USER",
+      schoolId: "sch_1",
+    });
+    (prisma.item.findFirst as any).mockResolvedValue({
+      id: "item1",
+      schoolId: "sch_1",
+    });
+
+    const req = new NextRequest("http://localhost/api/items/item1/repairs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description: "Fix motor", cost: "not-a-number" }),
+    });
+    const res = await POST_REPAIR(req, {
+      params: Promise.resolve({ itemId: "item1" }),
+    });
+
+    expect(res.status).toBe(400);
+    expect(prisma.repair.create).not.toHaveBeenCalled();
+  });
 });
 
 describe("GET /api/move-log — school-scoped log", () => {
@@ -223,5 +247,14 @@ describe("GET /api/move-log — school-scoped log", () => {
         take: 500,
       })
     );
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    (requireSession as any).mockRejectedValue(new Error("Unauthorized"));
+
+    const req = new NextRequest("http://localhost/api/move-log");
+    const res = await GET_MOVE_LOG(req);
+
+    expect(res.status).toBe(401);
   });
 });
