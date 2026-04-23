@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import StatsBar from "@/components/StatsBar";
 import TabNav from "@/components/TabNav";
+import SectionsView from "@/components/SectionsView";
 import { api } from "@/lib/api-client";
+import type { Item } from "@/components/ItemChip";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -22,19 +24,19 @@ export default function DashboardPage() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState(new Set<string>());
+  const [dragItem, setDragItem] = useState<Item | null>(null);
+  const [dragRoom, setDragRoom] = useState<string | null>(null);
+  const [dragOverRoom, setDragOverRoom] = useState<string | null>(null);
 
   // Suppress unused variable warnings for state used by future task views
-  void activeSection;
   void selectedItem;
   void search;
   void filterType;
   void filterStatus;
-  void selectedItems;
   void setSelectedItem;
   void setSearch;
   void setFilterType;
   void setFilterStatus;
-  void setSelectedItems;
 
   useEffect(() => {
     async function loadData() {
@@ -64,6 +66,56 @@ export default function DashboardPage() {
     }
     loadData();
   }, []);
+
+  // ── Item selection helpers ──────────────────────────────────────────────────
+  const openItem = (item: Item) => setSelectedItem(item);
+
+  const toggleSelectItem = (id: string, _shiftHeld: boolean) => {
+    setSelectedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedItems(new Set());
+
+  // ── Drag & drop handlers ────────────────────────────────────────────────────
+  const onDragItemStart = (e: React.DragEvent, item: Item) => {
+    setDragItem(item);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const onDragItemEnd = () => {
+    setDragItem(null);
+    setDragOverRoom(null);
+  };
+  const onRoomDragOver = (e: React.DragEvent, room: string) => {
+    e.preventDefault();
+    setDragOverRoom(room);
+  };
+  const onRoomDrop = (e: React.DragEvent, room: string) => {
+    e.preventDefault();
+    if (dragItem && (dragItem as Item).location !== room) {
+      setModal({ type: "move", item: dragItem as unknown, pendingLocation: room });
+    }
+    setDragOverRoom(null);
+    setDragItem(null);
+  };
+  const onRoomCardDragStart = (e: React.DragEvent, room: string) => {
+    setDragRoom(room);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const onRoomCardDrop = (e: React.DragEvent, _room: string, _section: string) => {
+    e.preventDefault();
+    // Room reorder is handled inside SectionsView via onDrop — sections state
+    // update (reorderRooms) is a Settings-level operation; left as future task.
+    setDragRoom(null);
+    setDragOverRoom(null);
+  };
+
+  // Suppress helpers not yet wired to UI to avoid lint errors
+  void clearSelection;
 
   // Compute stats from items (items have status/isLoaned/warrantyEnd/faults fields)
   const typedItems = items as Array<{
@@ -149,9 +201,26 @@ export default function DashboardPage() {
 
       <div style={{ flex: 1, overflow: "auto", padding: "14px 16px" }}>
         {tab === "sections" && (
-          <div style={{ color: "#4b5563", fontSize: 12 }}>
-            Sections view loading... ({items.length} items across {Object.keys(sections).length} sections)
-          </div>
+          <SectionsView
+            items={items as Item[]}
+            sections={sections}
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            onSelectItem={openItem}
+            onAddItem={loc => setModal({ type: "additem", location: loc })}
+            onDragItemStart={onDragItemStart}
+            onDragItemEnd={onDragItemEnd}
+            onRoomDragOver={onRoomDragOver}
+            onRoomDrop={onRoomDrop}
+            dragOverRoom={dragOverRoom}
+            onRoomCardDragStart={onRoomCardDragStart}
+            onRoomCardDrop={onRoomCardDrop}
+            onMoveItem={item => setModal({ type: "move", item: item as unknown, pendingLocation: null })}
+            dragItem={dragItem}
+            dragRoom={dragRoom}
+            selectedItems={selectedItems}
+            onToggleSelect={toggleSelectItem}
+          />
         )}
         {tab === "list" && (
           <div style={{ color: "#4b5563", fontSize: 12 }}>List view — {items.length} items total</div>
