@@ -7,6 +7,7 @@ import StatsBar from "@/components/StatsBar";
 import TabNav from "@/components/TabNav";
 import SectionsView from "@/components/SectionsView";
 import ListView from "@/components/ListView";
+import FaultsView from "@/components/FaultsView";
 import { api } from "@/lib/api-client";
 import type { Item } from "@/components/ItemChip";
 
@@ -111,6 +112,18 @@ export default function DashboardPage() {
 
   // Suppress helpers not yet wired to UI to avoid lint errors
   void clearSelection;
+
+  // ── Fault update handler ────────────────────────────────────────────────────
+  const onUpdateFault = async (itemId: string, faultId: string, patch: { status: string }) => {
+    void itemId;
+    try {
+      await api.faults.update(faultId, patch);
+      const fetchedItems = await api.items.list();
+      setItems(fetchedItems);
+    } catch (e) {
+      console.error("Failed to update fault:", e);
+    }
+  };
 
   // Compute stats from items (items have status/isLoaned/warrantyEnd/faults fields)
   const typedItems = items as Array<{
@@ -230,7 +243,12 @@ export default function DashboardPage() {
           />
         )}
         {tab === "faults" && (
-          <div style={{ color: "#4b5563", fontSize: 12 }}>Faults view placeholder</div>
+          <FaultsView
+            items={items as Item[]}
+            onSelectItem={openItem}
+            onUpdateFault={onUpdateFault}
+            setLightbox={setLightbox}
+          />
         )}
         {tab === "loans" && (
           <div style={{ color: "#4b5563", fontSize: 12 }}>Loans view placeholder</div>
