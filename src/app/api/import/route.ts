@@ -10,6 +10,13 @@ export async function POST(req: NextRequest) {
     if (!isAdmin(user.role))
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+    if (user.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Super admin must use a school-scoped session to import items" },
+        { status: 403 }
+      );
+    }
+
     const schoolId = resolveSchoolId(user);
     const body = await req.json();
     const rows: unknown[] = body.items;

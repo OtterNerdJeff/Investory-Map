@@ -189,6 +189,7 @@ describe("GET /api/reports", () => {
     expect(data.stats.loaned).toBe(1);
     expect(data.stats.openFaults).toBe(1);
     expect(data.stats.warrantyExpired).toBe(1);
+    expect(data.stats.expiringSoon).toBe(0);
 
     // byType / byBrand
     expect(data.byType["Projector"]).toBe(1);
@@ -199,5 +200,29 @@ describe("GET /api/reports", () => {
     // warrantyExpired list
     expect(data.warrantyExpired).toHaveLength(1);
     expect(data.warrantyExpired[0].label).toBe("Projector A");
+  });
+
+  it("counts expiringSoon items within 90 days", async () => {
+    (requireSession as any).mockResolvedValue({
+      id: "user1",
+      role: "SCHOOL_ADMIN",
+      schoolId: "sch_1",
+    });
+
+    const soon = new Date();
+    soon.setDate(soon.getDate() + 30);
+
+    (prisma.item.findMany as any).mockResolvedValue([
+      { id: "i1", type: "Projector", brand: "Sony", status: "Operational", isLoaned: false, warrantyEnd: soon, label: "P01", model: "M1", locationName: "Room A" },
+    ]);
+    (prisma.fault.count as any).mockResolvedValue(0);
+
+    const req = new NextRequest("http://localhost/api/reports");
+    const res = await GET_REPORTS(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.stats.expiringSoon).toBe(1);
+    expect(data.stats.warrantyExpired).toBe(0);
   });
 });
