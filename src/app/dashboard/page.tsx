@@ -9,6 +9,7 @@ import SectionsView from "@/components/SectionsView";
 import ListView from "@/components/ListView";
 import FaultsView from "@/components/FaultsView";
 import LoansView from "@/components/LoansView";
+import DetailPanel from "@/components/DetailPanel";
 import { api } from "@/lib/api-client";
 import type { Item } from "@/components/ItemChip";
 
@@ -20,7 +21,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("sections");
   const [activeSection, setActiveSection] = useState("");
-  const [selectedItem, setSelectedItem] = useState<unknown | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [detailTab, setDetailTab] = useState("details");
   const [modal, setModal] = useState<{ type: string; [key: string]: unknown } | null>(null);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("All");
@@ -31,9 +33,6 @@ export default function DashboardPage() {
   const [dragRoom, setDragRoom] = useState<string | null>(null);
   const [dragOverRoom, setDragOverRoom] = useState<string | null>(null);
 
-  // Suppress unused variable warnings for state used by future task views
-  void selectedItem;
-  void setSelectedItem;
 
   useEffect(() => {
     async function loadData() {
@@ -65,7 +64,7 @@ export default function DashboardPage() {
   }, []);
 
   // ── Item selection helpers ──────────────────────────────────────────────────
-  const openItem = (item: Item) => setSelectedItem(item);
+  const openItem = (item: Item) => { setSelectedItem(item); setDetailTab("details"); };
 
   const toggleSelectItem = (id: string, _shiftHeld: boolean) => {
     setSelectedItems(prev => {
@@ -124,6 +123,48 @@ export default function DashboardPage() {
     } catch (e) {
       console.error("Failed to update fault:", e);
     }
+  };
+
+  // ── DetailPanel API handlers ────────────────────────────────────────────────
+  const refreshItems = async () => {
+    const fetchedItems = await api.items.list();
+    setItems(fetchedItems);
+  };
+
+  const handleUpdateItem = async (patch: Record<string, unknown>) => {
+    if (!selectedItem) return;
+    const item = selectedItem as Item;
+    try {
+      await api.items.update(item.id, patch);
+      await refreshItems();
+      setSelectedItem({ ...item, ...patch });
+    } catch (e) { console.error(e); }
+  };
+
+  const handleDeleteItem = async () => {
+    if (!selectedItem) return;
+    const item = selectedItem as Item;
+    try {
+      await api.items.delete(item.id);
+      setSelectedItem(null);
+      await refreshItems();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleAddRepair = async (repair: Record<string, unknown>) => {
+    if (!selectedItem) return;
+    const item = selectedItem as Item;
+    try {
+      await api.items.addRepair(item.id, repair);
+      await refreshItems();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleUpdateFaultInPanel = async (faultId: string, patch: Record<string, unknown>) => {
+    try {
+      await api.faults.update(faultId, patch);
+      await refreshItems();
+    } catch (e) { console.error(e); }
   };
 
   // Compute stats from items (items have status/isLoaned/warrantyEnd/faults fields)
@@ -191,6 +232,8 @@ export default function DashboardPage() {
         .sec-btn.active{background:#111827;border-color:#6366f1;color:#a5b4fc}
         .sec-btn:not(.active){color:#6b7280}
         .sec-btn:not(.active):hover{color:#9ca3af;border-color:#374151}
+        .float-entry{animation:floatIn .18s cubic-bezier(.34,1.56,.64,1)}
+        @keyframes floatIn{from{opacity:0;transform:scale(.92) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
       `}</style>
 
       <Header
@@ -260,6 +303,27 @@ export default function DashboardPage() {
           />
         )}
       </div>
+
+      {selectedItem && (
+        <div className="float-entry">
+          <DetailPanel
+            item={selectedItem as Item}
+            detailTab={detailTab}
+            setDetailTab={setDetailTab}
+            onClose={() => setSelectedItem(null)}
+            onUpdate={handleUpdateItem}
+            onDelete={handleDeleteItem}
+            onAddRepair={handleAddRepair}
+            onReportFault={() => setModal({ type: "fault", item: selectedItem })}
+            onUpdateFault={handleUpdateFaultInPanel}
+            onMove={() => setModal({ type: "move", item: selectedItem, pendingLocation: null })}
+            onLoanOut={() => setModal({ type: "loanout", item: selectedItem })}
+            onReturn={() => setModal({ type: "return", item: selectedItem })}
+            setLightbox={setLightbox}
+            allLocations={Object.values(sections).flat()}
+          />
+        </div>
+      )}
 
       {modal && (
         <div style={{ color: "#4b5563", fontSize: 10, position: "fixed", bottom: 8, right: 8 }}>
