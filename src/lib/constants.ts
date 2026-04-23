@@ -12,6 +12,15 @@ export const STATUS_LIST = [
   "Others",
 ] as const;
 
+// Full set of acceptable status strings for server-side validation.
+// Includes "Faulty" — not user-selectable in create forms, but auto-derived
+// by fault-escalation logic (see CLAUDE.md "Fault auto-escalation") and
+// therefore must round-trip through PUT.
+export const STATUS_ENUM_FOR_VALIDATION = [
+  ...STATUS_LIST,
+  "Faulty",
+] as const;
+
 export const STATUS_COLORS: Record<
   string,
   { bg: string; border: string; text: string; badge: string }
