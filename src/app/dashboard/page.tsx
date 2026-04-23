@@ -10,6 +10,16 @@ import ListView from "@/components/ListView";
 import FaultsView from "@/components/FaultsView";
 import LoansView from "@/components/LoansView";
 import DetailPanel from "@/components/DetailPanel";
+import MoveModal from "@/components/modals/MoveModal";
+import FaultModal from "@/components/modals/FaultModal";
+import LoanOutModal from "@/components/modals/LoanOutModal";
+import ReturnModal from "@/components/modals/ReturnModal";
+import ReportModal from "@/components/modals/ReportModal";
+import MoveLogModal from "@/components/modals/MoveLogModal";
+import AddItemModal from "@/components/modals/AddItemModal";
+import ImportModal from "@/components/modals/ImportModal";
+import BulkMoveModal from "@/components/modals/BulkMoveModal";
+import SettingsModal from "@/components/modals/SettingsModal";
 import { api } from "@/lib/api-client";
 import type { Item } from "@/components/ItemChip";
 
@@ -17,6 +27,7 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const [items, setItems] = useState<unknown[]>([]);
   const [sections, setSections] = useState<Record<string, string[]>>({});
+  const [sectionsRaw, setSectionsRaw] = useState<Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string }> }>>([]);
   const [moveLog, setMoveLog] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("sections");
@@ -51,6 +62,7 @@ export default function DashboardPage() {
           });
         }
         setSections(sectionMap);
+        setSectionsRaw(fetchedSections as Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string }> }>);
         const firstSection = Object.keys(sectionMap)[0];
         if (firstSection) setActiveSection(firstSection);
         setMoveLog(fetchedLog);
@@ -161,6 +173,106 @@ export default function DashboardPage() {
     try {
       await api.faults.update(faultId, patch);
       await refreshItems();
+    } catch (e) { console.error(e); }
+  };
+
+  // ── Section refresh helper ──────────────────────────────────────────────────
+  const refreshSections = async () => {
+    const fetchedSections = await api.sections.list();
+    const raw = fetchedSections as Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string }> }>;
+    setSectionsRaw(raw);
+    const sectionMap: Record<string, string[]> = {};
+    raw.forEach(s => { sectionMap[s.name] = (s.rooms ?? []).map(r => r.name); });
+    setSections(sectionMap);
+  };
+
+  // ── Modal action handlers ───────────────────────────────────────────────────
+  const handleMove = async (toLocation: string, reason: string, movedBy: string) => {
+    const item = modal?.item as Item | undefined;
+    if (!item) return;
+    try {
+      await api.items.move(item.id, { toLocation, reason, movedBy });
+      await refreshItems();
+      setModal(null);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleFaultSubmit = async (form: { faultType: string; severity: string; description: string; reportedBy: string; photos: string[] }) => {
+    const item = modal?.item as Item | undefined;
+    if (!item) return;
+    try {
+      await api.items.addFault(item.id, form);
+      await refreshItems();
+      setModal(null);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleLoanOut = async (data: { borrowerName: string; borrowerId: string; issuedBy: string; expectedReturn: string; notes: string; signature: string | null }) => {
+    const item = modal?.item as Item | undefined;
+    if (!item) return;
+    try {
+      await api.items.loanOut(item.id, data);
+      await refreshItems();
+      setModal(null);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleReturn = async (data: { returnLocation: string; condition: string; returnedBy: string; notes: string }) => {
+    const item = modal?.item as Item | undefined;
+    if (!item) return;
+    try {
+      await api.items.returnItem(item.id, data);
+      await refreshItems();
+      setModal(null);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleAddItem = async (form: Record<string, unknown>) => {
+    try {
+      await api.items.create(form);
+      await refreshItems();
+      setModal(null);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleBulkMove = async (toLocation: string, reason: string, movedBy: string) => {
+    try {
+      await Promise.all(
+        Array.from(selectedItems).map(id => api.items.move(id, { toLocation, reason, movedBy }))
+      );
+      await refreshItems();
+      clearSelection();
+      setModal(null);
+    } catch (e) { console.error(e); }
+  };
+
+  const handleAddSection = async (name: string) => {
+    try { await api.sections.create({ name }); await refreshSections(); } catch (e) { console.error(e); }
+  };
+  const handleRenameSection = async (sectionId: string, name: string, currentName: string) => {
+    try { await api.sections.update(sectionId, { name }); await refreshSections(); if (activeSection === currentName) setActiveSection(name); } catch (e) { console.error(e); }
+  };
+  const handleDeleteSection = async (sectionId: string, sectionName: string) => {
+    try { await api.sections.delete(sectionId); await refreshSections(); if (activeSection === sectionName) setActiveSection(""); } catch (e) { console.error(e); }
+  };
+  const handleAddRoom = async (sectionId: string, name: string) => {
+    try { await api.sections.addRoom(sectionId, name); await refreshSections(); } catch (e) { console.error(e); }
+  };
+  const handleRenameRoom = async (sectionId: string, roomId: string, name: string) => {
+    try { await api.sections.renameRoom(sectionId, roomId, name); await refreshSections(); } catch (e) { console.error(e); }
+  };
+  const handleDeleteRoom = async (sectionId: string, roomId: string, redirectTo: string) => {
+    void redirectTo; // redirectTo is handled server-side or by items re-fetch
+    try { await api.sections.deleteRoom(sectionId, roomId); await refreshSections(); await refreshItems(); } catch (e) { console.error(e); }
+  };
+  const handleMoveRoom = async (fromSectionId: string, toSectionId: string, roomId: string) => {
+    // No dedicated API — implement as delete from old + add to new section
+    const room = sectionsRaw.find(s => s.id === fromSectionId)?.rooms.find(r => r.id === roomId);
+    if (!room) return;
+    try {
+      await api.sections.deleteRoom(fromSectionId, roomId);
+      await api.sections.addRoom(toSectionId, room.name);
+      await refreshSections();
     } catch (e) { console.error(e); }
   };
 
@@ -322,10 +434,86 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {modal && (
-        <div style={{ color: "#4b5563", fontSize: 10, position: "fixed", bottom: 8, right: 8 }}>
-          modal: {modal.type}
-          <button onClick={() => setModal(null)} style={{ marginLeft: 6, background: "none", border: "none", color: "#6b7280", cursor: "pointer" }}>✕</button>
+      {modal?.type === "move" && (
+        <MoveModal
+          item={(modal.item as Item) ?? ({} as Item)}
+          pendingLocation={modal.pendingLocation as string | null}
+          allLocations={Object.values(sections).flat()}
+          onMove={handleMove}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "fault" && (
+        <FaultModal
+          item={(modal.item as Item) ?? ({} as Item)}
+          onSubmit={handleFaultSubmit}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "loanout" && (
+        <LoanOutModal
+          item={(modal.item as Item) ?? ({} as Item)}
+          onSubmit={handleLoanOut}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "return" && (
+        <ReturnModal
+          item={(modal.item as Item) ?? ({} as Item)}
+          allLocations={Object.values(sections).flat()}
+          onSubmit={handleReturn}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "report" && (
+        <ReportModal items={items as Item[]} onClose={() => setModal(null)} />
+      )}
+      {modal?.type === "movelog" && (
+        <MoveLogModal
+          log={moveLog as Array<{ id: string; itemLabel: string; from: string; to: string; reason: string; movedBy?: string; date: string }>}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "additem" && (
+        <AddItemModal
+          location={(modal.location as string) ?? ""}
+          onAdd={handleAddItem}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "import" && (
+        <ImportModal
+          onSuccess={async () => { setModal(null); await refreshItems(); }}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "bulkmove" && (
+        <BulkMoveModal
+          count={selectedItems.size}
+          allLocations={Object.values(sections).flat()}
+          onMove={handleBulkMove}
+          onClose={() => setModal(null)}
+        />
+      )}
+      {modal?.type === "settings" && (
+        <SettingsModal
+          sectionsData={sectionsRaw}
+          onAddSection={handleAddSection}
+          onRenameSection={handleRenameSection}
+          onDeleteSection={handleDeleteSection}
+          onAddRoom={handleAddRoom}
+          onRenameRoom={handleRenameRoom}
+          onDeleteRoom={handleDeleteRoom}
+          onMoveRoom={handleMoveRoom}
+          onClose={() => setModal(null)}
+        />
+      )}
+
+      {selectedItems.size > 0 && (
+        <div style={{ position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)", background: "#0f1520", border: "1px solid #6366f1", borderRadius: 8, padding: "8px 14px", display: "flex", alignItems: "center", gap: 10, zIndex: 190, boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>
+          <span style={{ fontSize: 11, color: "#a5b4fc" }}>{selectedItems.size} items selected</span>
+          <button className="btn" onClick={() => setModal({ type: "bulkmove" })} style={{ fontSize: 10, padding: "3px 10px" }}>⇄ Move All</button>
+          <button onClick={clearSelection} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: 12 }}>✕ Clear</button>
         </div>
       )}
 
