@@ -6,6 +6,9 @@ import bcrypt from "bcryptjs";
 
 type Params = { params: Promise<{ schoolId: string }> };
 
+const ALLOWED_ROLES = ["SCHOOL_ADMIN", "USER"] as const;
+type AllowedRole = (typeof ALLOWED_ROLES)[number];
+
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     await requireSuperAdmin();
@@ -16,6 +19,13 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "email, password, and name are required" }, { status: 400 });
     }
 
+    if (body.role && !ALLOWED_ROLES.includes(body.role as AllowedRole)) {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+    const role: AllowedRole = ALLOWED_ROLES.includes(body.role as AllowedRole)
+      ? (body.role as AllowedRole)
+      : "USER";
+
     const school = await prisma.school.findFirst({ where: { id: schoolId } });
     if (!school) return NextResponse.json({ error: "School not found" }, { status: 404 });
 
@@ -25,7 +35,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         email: body.email,
         passwordHash: hash,
         name: body.name,
-        role: (body.role as "SCHOOL_ADMIN" | "USER") ?? "USER",
+        role,
         schoolId,
       },
       select: { id: true, name: true, email: true, role: true, createdAt: true },

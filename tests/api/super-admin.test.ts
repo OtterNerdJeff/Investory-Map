@@ -193,6 +193,7 @@ describe("POST /api/super-admin/schools/[schoolId]/users", () => {
     expect(res.status).toBe(201);
     expect(data.id).toBe("u_new");
     expect(data.email).toBe("jane@school.com");
+    expect(data.passwordHash).toBeUndefined();
     expect(prisma.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -222,6 +223,21 @@ describe("POST /api/super-admin/schools/[schoolId]/users", () => {
     const res = await POST_USER(req, { params: Promise.resolve({ schoolId: "bogus" }) });
 
     expect(res.status).toBe(404);
+  });
+
+  it("returns 400 when role is SUPER_ADMIN", async () => {
+    (requireSuperAdmin as any).mockResolvedValue(undefined);
+    (prisma.school.findFirst as any).mockResolvedValue({ id: "sch_1", name: "School A" });
+
+    const req = new NextRequest("http://localhost/api/super-admin/schools/sch_1/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "bad@test.com", password: "pass123", name: "Bad User", role: "SUPER_ADMIN" }),
+    });
+    const res = await POST_USER(req, { params: Promise.resolve({ schoolId: "sch_1" }) });
+
+    expect(res.status).toBe(400);
+    expect(prisma.user.create).not.toHaveBeenCalled();
   });
 });
 
