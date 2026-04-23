@@ -9,9 +9,14 @@ export interface Item {
   type: string;
   brand: string;
   model: string;
+  serial?: string;
+  assetCode?: string;
+  cost?: string;
   status: string;
   location: string;
   isLoaned: boolean;
+  loanable: boolean;
+  loanedTo?: string;
   warrantyEnd: string | null;
   faults: Array<{ status: string }>;
   [key: string]: unknown;
