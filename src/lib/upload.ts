@@ -1,17 +1,17 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 
+const S3_ENDPOINT = (process.env.S3_ENDPOINT ?? "").replace(/\/$/, "");
+const BUCKET = process.env.S3_BUCKET ?? "investory-uploads";
+
 const s3 = new S3Client({
-  region: process.env.S3_REGION || "us-east-1",
-  endpoint: process.env.S3_ENDPOINT,
-  forcePathStyle: true,
+  region: process.env.S3_REGION ?? "us-east-1",
+  ...(S3_ENDPOINT ? { endpoint: S3_ENDPOINT, forcePathStyle: true } : {}),
   credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY || "",
-    secretAccessKey: process.env.S3_SECRET_KEY || "",
+    accessKeyId: process.env.S3_ACCESS_KEY ?? "",
+    secretAccessKey: process.env.S3_SECRET_KEY ?? "",
   },
 });
-
-const BUCKET = process.env.S3_BUCKET || "investory-uploads";
 
 export async function uploadFile(
   buffer: Buffer,
@@ -30,7 +30,7 @@ export async function uploadFile(
     })
   );
 
-  return `${process.env.S3_ENDPOINT}/${BUCKET}/${key}`;
+  return `${S3_ENDPOINT}/${BUCKET}/${key}`;
 }
 
 export async function deleteFile(url: string): Promise<void> {

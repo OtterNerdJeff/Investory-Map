@@ -4,6 +4,8 @@ import { handleApiError } from "@/lib/api-errors";
 import { uploadFile } from "@/lib/upload";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_FOLDERS = ["photos", "signatures"] as const;
+type AllowedFolder = (typeof ALLOWED_FOLDERS)[number];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(req: NextRequest) {
@@ -24,7 +26,12 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const folder = (formData.get("folder") as string) || "photos";
+    const rawFolder = formData.get("folder");
+    const folder: AllowedFolder =
+      typeof rawFolder === "string" &&
+      ALLOWED_FOLDERS.includes(rawFolder as AllowedFolder)
+        ? (rawFolder as AllowedFolder)
+        : "photos";
     const url = await uploadFile(buffer, file.type, folder);
 
     return NextResponse.json({ url });
