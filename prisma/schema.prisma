@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  SCHOOL_ADMIN
+  USER
+}
+
+model School {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  items    Item[]
+  sections Section[]
+  moveLog  MoveLogEntry[]
+  auditLog AuditLogEntry[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(USER)
+  schoolId     String?
+  school       School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Item {
+  id           String    @id @default(cuid())
+  schoolId     String
+  school       School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  label        String
+  assetCode    String?
+  type         String
+  brand        String?
+  model        String?
+  serial       String?
+  locationName String    @default("Spare")
+  cost         Decimal?  @db.Decimal(12, 2)
+  warrantyEnd  DateTime?
+  status       String    @default("Operational")
+  statusNote   String?
+  loanable     Boolean   @default(false)
+  isLoaned     Boolean   @default(false)
+  loanedTo     String?
+  remark       String?
+  comment      String?
+  sheet        String?
+  prevLocation String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  faults      Fault[]
+  repairs     Repair[]
+  moveLog     MoveLogEntry[]
+  loanHistory LoanEntry[]
+
+  @@index([schoolId])
+  @@index([schoolId, status])
+  @@index([schoolId, type])
+}
+
+model Section {
+  id          String  @id @default(cuid())
+  schoolId    String
+  school      School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name        String
+  sortOrder   Int     @default(0)
+  isProtected Boolean @default(false)
+
+  rooms Room[]
+
+  @@unique([schoolId, name])
+  @@index([schoolId])
+}
+
+model Room {
+  id        String  @id @default(cuid())
+  sectionId String
+  section   Section @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int     @default(0)
+
+  @@unique([sectionId, name])
+}
+
+model Fault {
+  id             String   @id @default(cuid())
+  itemId         String
+  item           Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  faultType      String
+  severity       String   @default("Low")
+  status         String   @default("Open")
+  description    String?
+  reportedBy     String?
+  resolvedBy     String?
+  resolutionNote String?
+  photos         String[] @default([])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([itemId])
+}
+
+model Repair {
+  id           String    @id @default(cuid())
+  itemId       String
+  item         Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  description  String
+  startDate    DateTime?
+  completeDate DateTime?
+  technician   String?
+  cost         Decimal?  @db.Decimal(12, 2)
+  notes        String?
+  createdAt    DateTime  @default(now())
+
+  @@index([itemId])
+}
+
+model LoanEntry {
+  id             String    @id @default(cuid())
+  itemId         String
+  item           Item      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  borrowerName   String
+  borrowerId     String?
+  issuedBy       String?
+  expectedReturn DateTime?
+  condition      String?
+  notes          String?
+  signature      String?
+  dateOut        DateTime  @default(now())
+  dateIn         DateTime?
+  receivedBy     String?
+  returnLocation String?
+  status         String    @default("Active")
+
+  @@index([itemId])
+}
+
+model MoveLogEntry {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemLabel String
+  fromLoc   String
+  toLoc     String
+  reason    String?
+  movedBy   String?
+  createdAt DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([itemId])
+}
+
+model AuditLogEntry {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  userId    String?
+  userName  String?
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  @@index([schoolId])
+}
