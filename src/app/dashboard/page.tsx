@@ -110,9 +110,6 @@ export default function DashboardPage() {
     setDragOverRoom(null);
   };
 
-  // Suppress helpers not yet wired to UI to avoid lint errors
-  void clearSelection;
-
   // ── Fault update handler ────────────────────────────────────────────────────
   const onUpdateFault = async (itemId: string, faultId: string, patch: { status: string }) => {
     void itemId;

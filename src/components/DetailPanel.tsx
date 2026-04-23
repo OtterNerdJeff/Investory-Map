@@ -185,10 +185,10 @@ export default function DetailPanel({
   setLightbox,
   allLocations,
 }: DetailPanelProps) {
-  const [pos, setPos] = useState({
-    x: Math.max(20, window.innerWidth / 2 - 190),
-    y: Math.max(20, window.innerHeight / 2 - 280),
-  });
+  const [pos, setPos] = useState(() => ({
+    x: typeof window !== "undefined" ? Math.max(20, window.innerWidth / 2 - 190) : 20,
+    y: typeof window !== "undefined" ? Math.max(20, window.innerHeight / 2 - 280) : 20,
+  }));
   const [dragging, setDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   const winRef = useRef<HTMLDivElement>(null);
