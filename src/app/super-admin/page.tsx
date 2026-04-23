@@ -75,7 +75,7 @@ export default function SuperAdminPage() {
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       {/* Top bar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
         <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 20, color: "#e2e8f0" }}>
           Platform Overview
         </div>
@@ -98,7 +98,7 @@ export default function SuperAdminPage() {
       </div>
 
       {/* Stat Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 12, marginBottom: 24 }}>
         {statCards.map((s) => (
           <div key={s.label} style={{ ...cardStyle, textAlign: "center" }}>
             <div style={{ fontSize: 28, fontWeight: 700, color: "#818cf8", fontFamily: "'Space Grotesk',sans-serif" }}>

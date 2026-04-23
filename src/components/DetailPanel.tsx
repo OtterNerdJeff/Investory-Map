@@ -185,10 +185,14 @@ export default function DetailPanel({
   setLightbox,
   allLocations,
 }: DetailPanelProps) {
-  const [pos, setPos] = useState(() => ({
-    x: typeof window !== "undefined" ? Math.max(20, window.innerWidth / 2 - 190) : 20,
-    y: typeof window !== "undefined" ? Math.max(20, window.innerHeight / 2 - 280) : 20,
-  }));
+  const [pos, setPos] = useState(() => {
+    if (typeof window === "undefined") return { x: 10, y: 10 };
+    const panelW = Math.min(360, window.innerWidth - 20);
+    return {
+      x: Math.max(10, Math.floor((window.innerWidth - panelW) / 2)),
+      y: Math.max(10, Math.floor(window.innerHeight / 2 - 280)),
+    };
+  });
   const [dragging, setDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
   const winRef = useRef<HTMLDivElement>(null);
@@ -202,8 +206,9 @@ export default function DetailPanel({
   const onMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!dragging) return;
+      const panelW = Math.min(360, window.innerWidth - 10);
       setPos({
-        x: Math.max(0, Math.min(window.innerWidth - 380, e.clientX - dragOffset.current.x)),
+        x: Math.max(0, Math.min(window.innerWidth - panelW, e.clientX - dragOffset.current.x)),
         y: Math.max(0, Math.min(window.innerHeight - 80, e.clientY - dragOffset.current.y)),
       });
     },
@@ -231,8 +236,9 @@ export default function DetailPanel({
 
   const onTouchMove = (e: React.TouchEvent) => {
     const t = e.touches[0];
+    const panelW = Math.min(360, window.innerWidth - 10);
     setPos({
-      x: Math.max(0, Math.min(window.innerWidth - 340, t.clientX - dragOffset.current.x)),
+      x: Math.max(0, Math.min(window.innerWidth - panelW, t.clientX - dragOffset.current.x)),
       y: Math.max(0, Math.min(window.innerHeight - 80, t.clientY - dragOffset.current.y)),
     });
   };
@@ -258,7 +264,7 @@ export default function DetailPanel({
         position: "fixed",
         left: pos.x,
         top: pos.y,
-        width: 360,
+        width: "min(360px, calc(100vw - 20px))",
         maxHeight: "82vh",
         background: "rgba(10,14,25,0.97)",
         border: `1px solid ${s.border}`,

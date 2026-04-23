@@ -59,12 +59,12 @@ export default function ListView({
           placeholder="🔍 Search label, serial, brand, model, location..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{ flex: 1, minWidth: 180 }}
+          style={{ flex: 1, minWidth: 0 }}
         />
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          style={{ width: 130 }}
+          style={{ flex: "1 1 110px", minWidth: 0 }}
         >
           {types.map((t) => (
             <option key={t}>{t}</option>
@@ -73,7 +73,7 @@ export default function ListView({
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          style={{ width: 160 }}
+          style={{ flex: "1 1 130px", minWidth: 0 }}
         >
           <option value="All">All Status</option>
           {[

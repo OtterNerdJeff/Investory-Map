@@ -219,7 +219,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
         {school.users.length === 0 ? (
           <div style={{ color: "#64748b", fontSize: 13 }}>No users yet.</div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, minWidth: 480 }}>
             <thead>
               <tr style={{ borderBottom: "1px solid #1e2432" }}>
                 {["Name", "Email", "Role", "Created"].map((h) => (
@@ -263,7 +263,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
 
         {/* Add User form */}
@@ -272,7 +272,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
             Add User
           </div>
           <form onSubmit={handleAddUser}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 10, marginBottom: 10 }}>
               <div>
                 <label style={{ fontSize: 11, color: "#64748b", display: "block", marginBottom: 4 }}>Name *</label>
                 <input
