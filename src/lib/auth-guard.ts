@@ -6,6 +6,7 @@ export type SessionUser = {
   name: string;
   role: Role;
   schoolId: string | null;
+  schoolName: string | null;
 };
 
 export function canAccess(

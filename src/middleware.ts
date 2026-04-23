@@ -21,7 +21,7 @@ export default auth((req) => {
   // Non-super-admin hitting /super-admin → bounce to /dashboard
   if (
     pathname.startsWith("/super-admin") &&
-    (token.user as any)?.role !== "SUPER_ADMIN"
+    token.user?.role !== "SUPER_ADMIN"
   ) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }

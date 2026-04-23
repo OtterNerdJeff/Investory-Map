@@ -24,13 +24,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           include: { school: true },
         });
 
-        if (!user) return null;
-
+        // Run bcrypt.compare even when user is missing, to equalize timing.
+        // This dummy hash is a real bcrypt hash (of a random value) — never matches.
+        const DUMMY_HASH =
+          "$2a$10$CwTycUXWue0Thq9StjUM0uJ8e5vZGMmGrZxQXNWpFpXQq3KkLqZy6";
+        const hash = user?.passwordHash ?? DUMMY_HASH;
         const isValid = await bcrypt.compare(
           credentials.password as string,
-          user.passwordHash
+          hash
         );
-        if (!isValid) return null;
+
+        if (!user || !isValid) return null;
 
         return {
           id: user.id,
@@ -39,7 +43,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
           schoolId: user.schoolId,
           schoolName: user.school?.name || null,
-        } as unknown as { id: string; email: string; name: string };
+        };
       },
     }),
   ],

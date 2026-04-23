@@ -11,19 +11,19 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = (user as any).id;
-        token.role = (user as any).role;
-        token.schoolId = (user as any).schoolId;
-        token.schoolName = (user as any).schoolName;
+        token.id = user.id;
+        token.role = user.role;
+        token.schoolId = user.schoolId;
+        token.schoolName = user.schoolName;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
-        (session.user as any).schoolId = token.schoolId;
-        (session.user as any).schoolName = token.schoolName;
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.schoolId = token.schoolId;
+        session.user.schoolName = token.schoolName;
       }
       return session;
     },
