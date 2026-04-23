@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import StatsBar from "@/components/StatsBar";
 import TabNav from "@/components/TabNav";
 import SectionsView from "@/components/SectionsView";
+import ListView from "@/components/ListView";
 import { api } from "@/lib/api-client";
 import type { Item } from "@/components/ItemChip";
 
@@ -30,13 +31,7 @@ export default function DashboardPage() {
 
   // Suppress unused variable warnings for state used by future task views
   void selectedItem;
-  void search;
-  void filterType;
-  void filterStatus;
   void setSelectedItem;
-  void setSearch;
-  void setFilterType;
-  void setFilterStatus;
 
   useEffect(() => {
     async function loadData() {
@@ -223,7 +218,16 @@ export default function DashboardPage() {
           />
         )}
         {tab === "list" && (
-          <div style={{ color: "#4b5563", fontSize: 12 }}>List view — {items.length} items total</div>
+          <ListView
+            items={items as Item[]}
+            search={search}
+            setSearch={setSearch}
+            filterType={filterType}
+            setFilterType={setFilterType}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            onSelectItem={openItem}
+          />
         )}
         {tab === "faults" && (
           <div style={{ color: "#4b5563", fontSize: 12 }}>Faults view placeholder</div>
