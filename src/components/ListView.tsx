@@ -45,11 +45,13 @@ export default function ListView({
         i.assetCode as string,
         i.type,
       ].some((v) => v?.toLowerCase().includes(q));
-    return (
-      mq &&
-      (filterType === "All" || i.type === filterType) &&
-      (filterStatus === "All" || i.status === filterStatus)
-    );
+    const typeMatch = filterType === "All" || i.type === filterType;
+    let statusMatch: boolean;
+    if (filterStatus === "All") statusMatch = true;
+    else if (filterStatus === "__expiring__") statusMatch = expiringSoon(i.warrantyEnd);
+    else if (filterStatus === "__expired__") statusMatch = isExpired(i.warrantyEnd);
+    else statusMatch = i.status === filterStatus;
+    return mq && typeMatch && statusMatch;
   });
 
   return (
@@ -86,6 +88,8 @@ export default function ListView({
           ].map((s) => (
             <option key={s}>{s}</option>
           ))}
+          <option value="__expiring__">⚠ Warranty Expiring Soon</option>
+          <option value="__expired__">✗ Warranty Expired</option>
         </select>
       </div>
       <div style={{ fontSize: 10, color: "#374151", marginBottom: 6 }}>

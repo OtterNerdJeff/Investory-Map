@@ -82,6 +82,11 @@ export const api = {
         method: "DELETE",
         body: JSON.stringify({ roomId }),
       }),
+    updateRoomOrder: (sectionId: string, roomId: string, sortOrder: number) =>
+      apiFetch<unknown>(`/api/sections/${sectionId}/rooms`, {
+        method: "PUT",
+        body: JSON.stringify({ roomId, sortOrder }),
+      }),
   },
 
   faults: {

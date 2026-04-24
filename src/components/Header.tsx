@@ -10,6 +10,7 @@ interface HeaderProps {
   onImport: () => void;
   onMoveLog: () => void;
   onSettings: () => void;
+  onProfile: () => void;
   userName: string;
 }
 
@@ -17,11 +18,11 @@ const APP_TITLE = "Inventory Map";
 const APP_SUBTITLE = "Room-based Asset & Inventory Manager";
 
 export default function Header({
-  moveLogCount, isAdmin, onReport, onExportCSV, onImport, onMoveLog, onSettings, userName,
+  moveLogCount, isAdmin, onReport, onExportCSV, onImport, onMoveLog, onSettings, onProfile, userName,
 }: HeaderProps) {
   return (
     <div style={{ background: "#0a0d18", borderBottom: "1px solid #1a1f35", flexShrink: 0 }}>
-      {/* Row 1: Logo + user + sign out — always fits */}
+      {/* Row 1: Logo + user (clickable) + sign out */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, boxShadow: "0 0 12px rgba(99,102,241,0.4)", flexShrink: 0 }}>◈</div>
@@ -30,8 +31,17 @@ export default function Header({
             <div style={{ fontSize: 9, color: "#374151" }}>{APP_SUBTITLE}</div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-          {userName && <span style={{ fontSize: 11, color: "#4b5563" }}>{userName}</span>}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          {userName && (
+            <button
+              className="btn"
+              onClick={onProfile}
+              title="Profile / Change Password"
+              style={{ fontSize: 11, color: "#a5b4fc", padding: "4px 10px" }}
+            >
+              👤 {userName}
+            </button>
+          )}
           <button className="btn" onClick={() => signOut({ callbackUrl: "/login" })} style={{ color: "#ef4444" }}>Sign Out</button>
         </div>
       </div>

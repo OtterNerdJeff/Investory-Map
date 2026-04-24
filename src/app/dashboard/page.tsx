@@ -20,6 +20,7 @@ import AddItemModal from "@/components/modals/AddItemModal";
 import ImportModal from "@/components/modals/ImportModal";
 import BulkMoveModal from "@/components/modals/BulkMoveModal";
 import SettingsModal from "@/components/modals/SettingsModal";
+import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { api } from "@/lib/api-client";
 import type { Item } from "@/components/ItemChip";
 
@@ -27,7 +28,7 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const [items, setItems] = useState<unknown[]>([]);
   const [sections, setSections] = useState<Record<string, string[]>>({});
-  const [sectionsRaw, setSectionsRaw] = useState<Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string }> }>>([]);
+  const [sectionsRaw, setSectionsRaw] = useState<Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string; sortOrder: number }> }>>([]);
   const [moveLog, setMoveLog] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("sections");
@@ -62,7 +63,7 @@ export default function DashboardPage() {
           });
         }
         setSections(sectionMap);
-        setSectionsRaw(fetchedSections as Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string }> }>);
+        setSectionsRaw(fetchedSections as Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string; sortOrder: number }> }>);
         const firstSection = Object.keys(sectionMap)[0];
         if (firstSection) setActiveSection(firstSection);
         setMoveLog(fetchedLog);
@@ -89,6 +90,21 @@ export default function DashboardPage() {
 
   const clearSelection = () => setSelectedItems(new Set());
 
+  // ── Stats card click handler ────────────────────────────────────────────────
+  const handleStatClick = (key: string) => {
+    switch (key) {
+      case "Total":        setModal({ type: "report" }); break;
+      case "OK":           setTab("list"); setFilterStatus("Operational"); setFilterType("All"); break;
+      case "Faulty":       setTab("list"); setFilterStatus("Faulty"); setFilterType("All"); break;
+      case "Maint.":       setTab("list"); setFilterStatus("Under Maintenance"); setFilterType("All"); break;
+      case "Condemned":    setTab("list"); setFilterStatus("Waiting for Condemnation"); setFilterType("All"); break;
+      case "On Loan":      setTab("loans"); break;
+      case "Open Faults":  setTab("faults"); break;
+      case "Expiring ⚠":  setTab("list"); setFilterStatus("__expiring__"); setFilterType("All"); break;
+      case "Expired ✗":   setTab("list"); setFilterStatus("__expired__"); setFilterType("All"); break;
+    }
+  };
+
   // ── Drag & drop handlers ────────────────────────────────────────────────────
   const onDragItemStart = (e: React.DragEvent, item: Item) => {
     setDragItem(item);
@@ -114,10 +130,38 @@ export default function DashboardPage() {
     setDragRoom(room);
     e.dataTransfer.effectAllowed = "move";
   };
-  const onRoomCardDrop = (e: React.DragEvent, _room: string, _section: string) => {
+  const onRoomCardDrop = async (e: React.DragEvent, targetRoomName: string, sectionName: string) => {
     e.preventDefault();
-    // Room reorder is handled inside SectionsView via onDrop — sections state
-    // update (reorderRooms) is a Settings-level operation; left as future task.
+    if (!dragRoom || dragRoom === targetRoomName) { setDragRoom(null); setDragOverRoom(null); return; }
+    const sectionData = sectionsRaw.find(s => s.name === sectionName);
+    if (!sectionData) { setDragRoom(null); setDragOverRoom(null); return; }
+    const fromIdx = sectionData.rooms.findIndex(r => r.name === dragRoom);
+    const toIdx = sectionData.rooms.findIndex(r => r.name === targetRoomName);
+    if (fromIdx < 0 || toIdx < 0) { setDragRoom(null); setDragOverRoom(null); return; }
+    // Build new order
+    const newRooms = [...sectionData.rooms];
+    const [moved] = newRooms.splice(fromIdx, 1);
+    newRooms.splice(toIdx, 0, moved);
+    // Optimistic UI update
+    setSections(prev => ({ ...prev, [sectionName]: newRooms.map(r => r.name) }));
+    // Persist only changed sortOrders
+    try {
+      await Promise.all(
+        newRooms
+          .map((r, i) => ({ room: r, newOrder: i }))
+          .filter(({ room, newOrder }) => {
+            const old = sectionData.rooms.findIndex(cr => cr.id === room.id);
+            return old !== newOrder;
+          })
+          .map(({ room, newOrder }) => api.sections.updateRoomOrder(sectionData.id, room.id, newOrder))
+      );
+      setSectionsRaw(prev => prev.map(s =>
+        s.id === sectionData.id ? { ...s, rooms: newRooms.map((r, i) => ({ ...r, sortOrder: i })) } : s
+      ));
+    } catch (err) {
+      console.error("Room reorder failed:", err);
+      await refreshSections();
+    }
     setDragRoom(null);
     setDragOverRoom(null);
   };
@@ -179,7 +223,7 @@ export default function DashboardPage() {
   // ── Section refresh helper ──────────────────────────────────────────────────
   const refreshSections = async () => {
     const fetchedSections = await api.sections.list();
-    const raw = fetchedSections as Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string }> }>;
+    const raw = fetchedSections as Array<{ id: string; name: string; isProtected: boolean; rooms: Array<{ id: string; name: string; sortOrder: number }> }>;
     setSectionsRaw(raw);
     const sectionMap: Record<string, string[]> = {};
     raw.forEach(s => { sectionMap[s.name] = (s.rooms ?? []).map(r => r.name); });
@@ -349,14 +393,15 @@ export default function DashboardPage() {
         moveLogCount={(moveLog as unknown[]).length}
         isAdmin={isAdmin}
         onReport={() => setModal({ type: "report" })}
-        onExportCSV={async () => { try { const csv = await api.items.list(); console.log("export", csv); } catch(e) { console.error(e); } }}
+        onExportCSV={() => { const a = document.createElement("a"); a.href = "/api/export"; document.body.appendChild(a); a.click(); document.body.removeChild(a); }}
         onImport={() => setModal({ type: "import" })}
         onMoveLog={() => setModal({ type: "movelog" })}
         onSettings={() => setModal({ type: "settings" })}
+        onProfile={() => setModal({ type: "changepassword" })}
         userName={(session?.user as { name?: string })?.name ?? ""}
       />
 
-      <StatsBar stats={stats} onClickTotal={() => setModal({ type: "report" })} />
+      <StatsBar stats={stats} onClickStat={handleStatClick} />
 
       <TabNav tab={tab} setTab={setTab} />
 
@@ -494,6 +539,9 @@ export default function DashboardPage() {
           onMove={handleBulkMove}
           onClose={() => setModal(null)}
         />
+      )}
+      {modal?.type === "changepassword" && (
+        <ChangePasswordModal onClose={() => setModal(null)} />
       )}
       {modal?.type === "settings" && (
         <SettingsModal
