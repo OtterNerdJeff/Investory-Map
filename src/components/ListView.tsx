@@ -92,13 +92,13 @@ export default function ListView({
           <option value="__expired__">✗ Warranty Expired</option>
         </select>
       </div>
-      <div style={{ fontSize: 10, color: "#374151", marginBottom: 6 }}>
+      <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 6 }}>
         {filtered.length} items — click any row to open floating detail window
       </div>
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #1e2432" }}>
+            <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
               {["Label", "Type", "Brand", "Model", "Serial", "Location", "Cost", "Warranty", "Status", "Loan"].map(
                 (h) => (
                   <th
@@ -106,7 +106,7 @@ export default function ListView({
                     style={{
                       padding: "5px 7px",
                       textAlign: "left",
-                      color: "#374151",
+                      color: "#94a3b8",
                       fontWeight: 400,
                       whiteSpace: "nowrap",
                     }}
@@ -128,42 +128,42 @@ export default function ListView({
                   key={item.id}
                   onClick={() => onSelectItem(item)}
                   style={{
-                    borderBottom: "1px solid #0d1117",
+                    borderBottom: "1px solid #ffffff",
                     cursor: "pointer",
                     transition: "background .1s",
                   }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#0d1117")
+                    (e.currentTarget.style.background = "#ffffff")
                   }
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.background = "")
                   }
                 >
-                  <td style={{ padding: "4px 7px", color: "#818cf8" }}>
+                  <td style={{ padding: "4px 7px", color: "#4f46e5" }}>
                     {item.label}
                     {openF > 0 && (
-                      <span style={{ color: "#fca5a5", marginLeft: 4, fontSize: 9 }}>
+                      <span style={{ color: "#dc2626", marginLeft: 4, fontSize: 9 }}>
                         ⚠{openF}
                       </span>
                     )}
                   </td>
-                  <td style={{ padding: "4px 7px", color: "#374151", whiteSpace: "nowrap" }}>
+                  <td style={{ padding: "4px 7px", color: "#94a3b8", whiteSpace: "nowrap" }}>
                     {getTypeIcon(item.type)} {item.type}
                   </td>
                   <td style={{ padding: "4px 7px" }}>{item.brand}</td>
-                  <td style={{ padding: "4px 7px", color: "#4b5563" }}>{item.model}</td>
+                  <td style={{ padding: "4px 7px", color: "#64748b" }}>{item.model}</td>
                   <td
                     style={{
                       padding: "4px 7px",
-                      color: "#2d3748",
+                      color: "#cbd5e1",
                       fontFamily: "monospace",
                       fontSize: 10,
                     }}
                   >
                     {item.serial as string}
                   </td>
-                  <td style={{ padding: "4px 7px", color: "#9ca3af" }}>{item.location}</td>
-                  <td style={{ padding: "4px 7px", color: "#4ade80" }}>
+                  <td style={{ padding: "4px 7px", color: "#475569" }}>{item.location}</td>
+                  <td style={{ padding: "4px 7px", color: "#16a34a" }}>
                     {item.cost
                       ? `$${Number(item.cost as string).toLocaleString()}`
                       : "—"}
@@ -174,8 +174,8 @@ export default function ListView({
                       color: isExpired(item.warrantyEnd)
                         ? "#ef4444"
                         : expiringSoon(item.warrantyEnd)
-                        ? "#facc15"
-                        : "#374151",
+                        ? "#d97706"
+                        : "#94a3b8",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -193,7 +193,7 @@ export default function ListView({
                     {item.isLoaned && (
                       <span
                         style={{
-                          color: "#c084fc",
+                          color: "#7c3aed",
                           fontSize: 10,
                           whiteSpace: "nowrap",
                         }}

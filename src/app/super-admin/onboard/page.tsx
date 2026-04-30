@@ -14,10 +14,10 @@ interface OnboardData {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "#111827",
-  border: "1px solid #1e2432",
+  background: "#f1f5f9",
+  border: "1px solid #e2e8f0",
   borderRadius: 6,
-  color: "#e2e8f0",
+  color: "#1e293b",
   padding: "8px 12px",
   fontSize: 13,
   fontFamily: "'DM Mono','Courier New',monospace",
@@ -98,8 +98,8 @@ export default function OnboardPage() {
             width: 28,
             height: 28,
             borderRadius: "50%",
-            background: s === step ? "#818cf8" : s < step ? "#4ade80" : "#1e2432",
-            color: s === step ? "#080b12" : s < step ? "#080b12" : "#64748b",
+            background: s === step ? "#4f46e5" : s < step ? "#16a34a" : "#e2e8f0",
+            color: s === step ? "#f8fafc" : s < step ? "#f8fafc" : "#64748b",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -110,7 +110,7 @@ export default function OnboardPage() {
             {s < step ? "✓" : s}
           </div>
           {s < totalSteps && (
-            <div style={{ height: 1, flex: 1, background: s < step ? "#4ade80" : "#1e2432" }} />
+            <div style={{ height: 1, flex: 1, background: s < step ? "#16a34a" : "#e2e8f0" }} />
           )}
         </React.Fragment>
       ))}
@@ -122,19 +122,19 @@ export default function OnboardPage() {
 
   if (success) {
     return (
-      <div style={{ maxWidth: 480, margin: "40px auto", background: "#0d1117", border: "1px solid #1e2432", borderRadius: 10, padding: 32, textAlign: "center" }}>
+      <div style={{ maxWidth: 480, margin: "40px auto", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 10, padding: 32, textAlign: "center" }}>
         <div style={{ fontSize: 36, marginBottom: 12 }}>✓</div>
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 20, color: "#4ade80", marginBottom: 8 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 20, color: "#16a34a", marginBottom: 8 }}>
           School Onboarded
         </div>
         <div style={{ fontSize: 13, color: "#94a3b8", marginBottom: 24 }}>
-          <strong style={{ color: "#e2e8f0" }}>{createdName}</strong> has been created successfully with an admin account.
+          <strong style={{ color: "#1e293b" }}>{createdName}</strong> has been created successfully with an admin account.
         </div>
         <button
           onClick={() => router.push("/super-admin")}
           style={{
-            background: "#818cf8",
-            color: "#080b12",
+            background: "#4f46e5",
+            color: "#f8fafc",
             border: "none",
             borderRadius: 6,
             padding: "10px 24px",
@@ -158,7 +158,7 @@ export default function OnboardPage() {
         style={{
           background: "none",
           border: "none",
-          color: "#818cf8",
+          color: "#4f46e5",
           cursor: "pointer",
           fontSize: 13,
           padding: 0,
@@ -169,8 +169,8 @@ export default function OnboardPage() {
         ← All Schools
       </button>
 
-      <div style={{ background: "#0d1117", border: "1px solid #1e2432", borderRadius: 10, padding: 28 }}>
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 18, color: "#e2e8f0", marginBottom: 4 }}>
+      <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 10, padding: 28 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 18, color: "#1e293b", marginBottom: 4 }}>
           Onboard New School
         </div>
         <div style={{ fontSize: 12, color: "#64748b", marginBottom: 20 }}>
@@ -182,7 +182,7 @@ export default function OnboardPage() {
         {/* Step 1: School Details */}
         {step === 1 && (
           <div>
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14, color: "#818cf8", marginBottom: 16 }}>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14, color: "#4f46e5", marginBottom: 16 }}>
               School Details
             </div>
             <div style={fieldStyle}>
@@ -218,8 +218,8 @@ export default function OnboardPage() {
               onClick={() => setStep(2)}
               disabled={!validateStep1()}
               style={{
-                background: validateStep1() ? "#818cf8" : "#1e2432",
-                color: validateStep1() ? "#080b12" : "#64748b",
+                background: validateStep1() ? "#4f46e5" : "#e2e8f0",
+                color: validateStep1() ? "#f8fafc" : "#64748b",
                 border: "none",
                 borderRadius: 6,
                 padding: "9px 22px",
@@ -238,7 +238,7 @@ export default function OnboardPage() {
         {/* Step 2: Admin Account */}
         {step === 2 && (
           <div>
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14, color: "#818cf8", marginBottom: 16 }}>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14, color: "#4f46e5", marginBottom: 16 }}>
               Admin Account
             </div>
             <div style={fieldStyle}>
@@ -276,7 +276,7 @@ export default function OnboardPage() {
                 onClick={() => setStep(1)}
                 style={{
                   background: "none",
-                  border: "1px solid #1e2432",
+                  border: "1px solid #e2e8f0",
                   color: "#94a3b8",
                   borderRadius: 6,
                   padding: "9px 18px",
@@ -292,8 +292,8 @@ export default function OnboardPage() {
                 onClick={() => setStep(3)}
                 disabled={!validateStep2()}
                 style={{
-                  background: validateStep2() ? "#818cf8" : "#1e2432",
-                  color: validateStep2() ? "#080b12" : "#64748b",
+                  background: validateStep2() ? "#4f46e5" : "#e2e8f0",
+                  color: validateStep2() ? "#f8fafc" : "#64748b",
                   border: "none",
                   borderRadius: 6,
                   padding: "9px 22px",
@@ -312,11 +312,11 @@ export default function OnboardPage() {
         {/* Step 3: Review & Confirm */}
         {step === 3 && (
           <div>
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14, color: "#818cf8", marginBottom: 16 }}>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 14, color: "#4f46e5", marginBottom: 16 }}>
               Review & Confirm
             </div>
 
-            <div style={{ background: "#111827", borderRadius: 8, padding: 16, marginBottom: 16, fontSize: 13 }}>
+            <div style={{ background: "#f1f5f9", borderRadius: 8, padding: 16, marginBottom: 16, fontSize: 13 }}>
               <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
                 School
               </div>
@@ -325,14 +325,14 @@ export default function OnboardPage() {
                 { label: "Code", value: data.code },
                 ...(data.address ? [{ label: "Address", value: data.address }] : []),
               ].map((r) => (
-                <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #1e2432" }}>
+                <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #e2e8f0" }}>
                   <span style={{ color: "#64748b" }}>{r.label}</span>
-                  <span style={{ color: "#e2e8f0" }}>{r.value}</span>
+                  <span style={{ color: "#1e293b" }}>{r.value}</span>
                 </div>
               ))}
             </div>
 
-            <div style={{ background: "#111827", borderRadius: 8, padding: 16, marginBottom: 20, fontSize: 13 }}>
+            <div style={{ background: "#f1f5f9", borderRadius: 8, padding: 16, marginBottom: 20, fontSize: 13 }}>
               <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 12, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
                 Admin Account
               </div>
@@ -342,15 +342,15 @@ export default function OnboardPage() {
                 { label: "Password", value: "••••••••" },
                 { label: "Role", value: "SCHOOL_ADMIN" },
               ].map((r) => (
-                <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #1e2432" }}>
+                <div key={r.label} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #e2e8f0" }}>
                   <span style={{ color: "#64748b" }}>{r.label}</span>
-                  <span style={{ color: "#e2e8f0" }}>{r.value}</span>
+                  <span style={{ color: "#1e293b" }}>{r.value}</span>
                 </div>
               ))}
             </div>
 
             {submitError && (
-              <div style={{ color: "#f87171", fontSize: 12, marginBottom: 12, background: "#1a0a0a", border: "1px solid #7f1d1d", borderRadius: 6, padding: "8px 12px" }}>
+              <div style={{ color: "#dc2626", fontSize: 12, marginBottom: 12, background: "#1a0a0a", border: "1px solid #fee2e2", borderRadius: 6, padding: "8px 12px" }}>
                 {submitError}
               </div>
             )}
@@ -361,7 +361,7 @@ export default function OnboardPage() {
                 disabled={submitting}
                 style={{
                   background: "none",
-                  border: "1px solid #1e2432",
+                  border: "1px solid #e2e8f0",
                   color: "#94a3b8",
                   borderRadius: 6,
                   padding: "9px 18px",
@@ -377,8 +377,8 @@ export default function OnboardPage() {
                 onClick={handleConfirm}
                 disabled={submitting}
                 style={{
-                  background: submitting ? "#374151" : "#4ade80",
-                  color: "#080b12",
+                  background: submitting ? "#94a3b8" : "#16a34a",
+                  color: "#f8fafc",
                   border: "none",
                   borderRadius: 6,
                   padding: "9px 22px",

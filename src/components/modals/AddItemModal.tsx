@@ -57,13 +57,13 @@ export default function AddItemModal({ location, onAdd, onClose }: AddItemModalP
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#818cf8", marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5", marginBottom: 12 }}>
           Add Equipment — {location}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
           {textFields.map(([k, l]) => (
             <div key={k}>
-              <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>{l}</label>
+              <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>{l}</label>
               <input
                 value={form[k] as string}
                 onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))}
@@ -71,7 +71,7 @@ export default function AddItemModal({ location, onAdd, onClose }: AddItemModalP
             </div>
           ))}
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>Type</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>Type</label>
             <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
               {Object.keys(TYPE_ICON)
                 .filter((k) => k !== "default")
@@ -81,7 +81,7 @@ export default function AddItemModal({ location, onAdd, onClose }: AddItemModalP
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>Warranty End</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>Warranty End</label>
             <input
               type="date"
               value={form.warrantyEnd}
@@ -89,7 +89,7 @@ export default function AddItemModal({ location, onAdd, onClose }: AddItemModalP
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>Status</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>Status</label>
             <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
               {STATUS_LIST.map((s) => (
                 <option key={s}>{s}</option>
@@ -105,7 +105,7 @@ export default function AddItemModal({ location, onAdd, onClose }: AddItemModalP
             )}
           </div>
           <label
-            style={{ fontSize: 10, color: "#4b5563", display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }}
+            style={{ fontSize: 10, color: "#64748b", display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }}
           >
             <input
               type="checkbox"

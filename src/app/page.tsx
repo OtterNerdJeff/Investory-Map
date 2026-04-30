@@ -38,8 +38,8 @@ export default function Home() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#080b12",
-        color: "#e2e8f0",
+        background: "#f8fafc",
+        color: "#1e293b",
         fontFamily: "'Space Grotesk', sans-serif",
         WebkitFontSmoothing: "antialiased",
       }}
@@ -52,8 +52,8 @@ export default function Home() {
           justifyContent: "space-between",
           padding: "0 32px",
           height: 60,
-          background: "#0a0d18",
-          borderBottom: "1px solid #1a1f35",
+          background: "#ffffff",
+          borderBottom: "1px solid #e2e8f0",
           position: "sticky",
           top: 0,
           zIndex: 10,
@@ -70,17 +70,17 @@ export default function Home() {
               alignItems: "center",
               justifyContent: "center",
               fontSize: 16,
-              boxShadow: "0 0 12px rgba(99,102,241,0.4)",
+              boxShadow: "0 0 12px rgba(99,102,241,0.2)",
               flexShrink: 0,
             }}
           >
             ◈
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "#a5b4fc", lineHeight: 1.2 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#4338ca", lineHeight: 1.2 }}>
               Investory Map
             </div>
-            <div style={{ fontSize: 10, color: "#4b5563", lineHeight: 1.2 }}>
+            <div style={{ fontSize: 10, color: "#64748b", lineHeight: 1.2 }}>
               School Asset Management
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function Home() {
             background: "#3730a3",
             border: "1px solid #6366f1",
             borderRadius: 6,
-            color: "#e2e8f0",
+            color: "#1e293b",
             fontSize: 13,
             fontFamily: "'Space Grotesk', sans-serif",
             fontWeight: 600,
@@ -123,7 +123,7 @@ export default function Home() {
             border: "1px solid rgba(99,102,241,0.35)",
             borderRadius: 20,
             fontSize: 11,
-            color: "#818cf8",
+            color: "#4f46e5",
             marginBottom: 28,
             fontFamily: "'DM Mono', monospace",
             letterSpacing: "0.08em",
@@ -138,7 +138,7 @@ export default function Home() {
             fontWeight: 600,
             margin: "0 0 20px",
             lineHeight: 1.15,
-            background: "linear-gradient(135deg, #e2e8f0 30%, #a5b4fc)",
+            background: "linear-gradient(135deg, #1e293b 30%, #4338ca)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
@@ -187,7 +187,7 @@ export default function Home() {
           maxWidth: 760,
           margin: "0 auto",
           padding: "0 32px",
-          borderTop: "1px solid #1a1f35",
+          borderTop: "1px solid #e2e8f0",
         }}
       />
 
@@ -203,7 +203,7 @@ export default function Home() {
           style={{
             textAlign: "center",
             fontSize: 11,
-            color: "#4b5563",
+            color: "#64748b",
             fontFamily: "'DM Mono', monospace",
             letterSpacing: "0.1em",
             marginBottom: 40,
@@ -223,8 +223,8 @@ export default function Home() {
             <div
               key={f.title}
               style={{
-                background: "#0d1117",
-                border: "1px solid #1e2432",
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
                 borderRadius: 10,
                 padding: "22px 20px",
               }}
@@ -234,7 +234,7 @@ export default function Home() {
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#a5b4fc",
+                  color: "#4338ca",
                   marginBottom: 8,
                 }}
               >
@@ -251,11 +251,11 @@ export default function Home() {
       {/* Footer */}
       <footer
         style={{
-          borderTop: "1px solid #1a1f35",
+          borderTop: "1px solid #e2e8f0",
           padding: "20px 32px",
           textAlign: "center",
           fontSize: 11,
-          color: "#374151",
+          color: "#94a3b8",
           fontFamily: "'DM Mono', monospace",
         }}
       >

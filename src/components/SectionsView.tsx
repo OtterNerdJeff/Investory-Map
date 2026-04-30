@@ -68,7 +68,7 @@ export default function SectionsView({
         ))}
       </div>
 
-      <div style={{ fontSize: 10, color: "#374151", marginBottom: 10 }}>
+      <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 10 }}>
         Shift+click items to multi-select · drag chips or room headers to reorder
       </div>
 
@@ -100,15 +100,15 @@ export default function SectionsView({
               key={room}
               className={`room-card${isDropTarget ? " drop-target" : ""}`}
               style={{
-                background: isDropTarget ? "#1a1d2e" : "#0d1117",
+                background: isDropTarget ? "#ede9fe" : "#ffffff",
                 border: `1px solid ${
                   hasIssue
                     ? "#dc2626"
                     : hasMaint
                     ? "#f59e0b"
                     : isCondemned
-                    ? "#f97316"
-                    : "#1e2432"
+                    ? "#c2410c"
+                    : "#e2e8f0"
                 }`,
                 padding: 10,
               }}
@@ -142,7 +142,7 @@ export default function SectionsView({
                   style={{
                     fontSize: 11,
                     fontWeight: 500,
-                    color: "#818cf8",
+                    color: "#4f46e5",
                     fontFamily: "'Space Grotesk',sans-serif",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -165,8 +165,8 @@ export default function SectionsView({
                     <span
                       className="badge"
                       style={{
-                        background: "#7f1d1d",
-                        color: "#fca5a5",
+                        background: "#fee2e2",
+                        color: "#dc2626",
                         fontSize: 9,
                       }}
                     >
@@ -176,9 +176,9 @@ export default function SectionsView({
                   <button
                     onClick={() => onAddItem(room)}
                     style={{
-                      background: "#1a1d2e",
-                      border: "1px solid #2d3748",
-                      color: "#818cf8",
+                      background: "#ede9fe",
+                      border: "1px solid #cbd5e1",
+                      color: "#4f46e5",
                       width: 18,
                       height: 18,
                       borderRadius: 3,
@@ -207,7 +207,7 @@ export default function SectionsView({
                   <div
                     style={{
                       fontSize: 10,
-                      color: "#1e2432",
+                      color: "#94a3b8",
                       textAlign: "center",
                       padding: "6px 0",
                     }}

@@ -61,19 +61,19 @@ export default function SettingsModal({
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ width: "min(580px,100%)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
-          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#818cf8" }}>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5" }}>
             Manage Sections & Rooms
           </div>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563", fontSize: 20 }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: 20 }}
           >
             ✕
           </button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 12, minHeight: 300 }}>
           <div>
-            <div style={{ fontSize: 10, color: "#4b5563", marginBottom: 6 }}>SECTIONS</div>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 6 }}>SECTIONS</div>
             {sectionsData.map((s) => (
               <div
                 key={s.id}
@@ -88,9 +88,9 @@ export default function SettingsModal({
                   cursor: "pointer",
                   fontSize: 11,
                   marginBottom: 3,
-                  background: selSecId === s.id ? "#1a1d2e" : "transparent",
-                  color: selSecId === s.id ? "#a5b4fc" : "#9ca3af",
-                  border: `1px solid ${selSecId === s.id ? "#374151" : "transparent"}`,
+                  background: selSecId === s.id ? "#ede9fe" : "transparent",
+                  color: selSecId === s.id ? "#4338ca" : "#475569",
+                  border: `1px solid ${selSecId === s.id ? "#94a3b8" : "transparent"}`,
                 }}
               >
                 {s.name}
@@ -167,14 +167,14 @@ export default function SettingsModal({
                 {movingRoom && (
                   <div
                     style={{
-                      background: "#1a1d2e",
+                      background: "#ede9fe",
                       border: "1px solid #6366f1",
                       borderRadius: 6,
                       padding: 10,
                       marginBottom: 10,
                     }}
                   >
-                    <div style={{ fontSize: 11, color: "#a5b4fc", marginBottom: 6 }}>
+                    <div style={{ fontSize: 11, color: "#4338ca", marginBottom: 6 }}>
                       Move &quot;{movingRoom.name}&quot; to:
                     </div>
                     <div style={{ display: "flex", gap: 6 }}>
@@ -214,9 +214,9 @@ export default function SettingsModal({
                   </div>
                 )}
 
-                <div style={{ fontSize: 10, color: "#4b5563", marginBottom: 6 }}>
+                <div style={{ fontSize: 10, color: "#64748b", marginBottom: 6 }}>
                   ROOMS{" "}
-                  <span style={{ color: "#2d3748" }}>
+                  <span style={{ color: "#cbd5e1" }}>
                     · rename inline · ↗ move to section · × delete
                   </span>
                 </div>
@@ -231,7 +231,7 @@ export default function SettingsModal({
                   }}
                 >
                   {selectedSection.rooms.length === 0 && (
-                    <div style={{ fontSize: 11, color: "#2d3748", padding: "10px 0", textAlign: "center" }}>
+                    <div style={{ fontSize: 11, color: "#cbd5e1", padding: "10px 0", textAlign: "center" }}>
                       No rooms yet — add one below
                     </div>
                   )}
@@ -253,9 +253,9 @@ export default function SettingsModal({
                         }}
                         style={{
                           background: "none",
-                          border: "1px solid #374151",
+                          border: "1px solid #94a3b8",
                           cursor: "pointer",
-                          color: "#818cf8",
+                          color: "#4f46e5",
                           fontSize: 11,
                           padding: "2px 6px",
                           borderRadius: 3,

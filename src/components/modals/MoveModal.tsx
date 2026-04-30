@@ -19,15 +19,15 @@ export default function MoveModal({ item, pendingLocation, allLocations, onMove,
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#818cf8", marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5", marginBottom: 12 }}>
           Move — {item.label}
         </div>
-        <div style={{ fontSize: 11, color: "#374151", marginBottom: 12 }}>
-          From: <span style={{ color: "#9ca3af" }}>{item.location}</span>
+        <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 12 }}>
+          From: <span style={{ color: "#475569" }}>{item.location}</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>New Location *</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>New Location *</label>
             <select value={loc} onChange={(e) => setLoc(e.target.value)}>
               {allLocations.map((l) => (
                 <option key={l}>{l}</option>
@@ -35,7 +35,7 @@ export default function MoveModal({ item, pendingLocation, allLocations, onMove,
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Reason *</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Reason *</label>
             <textarea
               rows={2}
               placeholder="e.g. Fault, event relocation..."
@@ -44,7 +44,7 @@ export default function MoveModal({ item, pendingLocation, allLocations, onMove,
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Moved By</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Moved By</label>
             <input placeholder="Your name" value={by} onChange={(e) => setBy(e.target.value)} />
           </div>
           <div style={{ display: "flex", gap: 8 }}>

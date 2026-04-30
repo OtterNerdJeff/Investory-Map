@@ -21,14 +21,14 @@ export default function Header({
   moveLogCount, isAdmin, onReport, onExportCSV, onImport, onMoveLog, onSettings, onProfile, userName,
 }: HeaderProps) {
   return (
-    <div style={{ background: "#0a0d18", borderBottom: "1px solid #1a1f35", flexShrink: 0 }}>
+    <div style={{ background: "#ffffff", borderBottom: "1px solid #e2e8f0", flexShrink: 0 }}>
       {/* Row 1: Logo + user (clickable) + sign out */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, boxShadow: "0 0 12px rgba(99,102,241,0.4)", flexShrink: 0 }}>◈</div>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#4f46e5,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, boxShadow: "0 0 12px rgba(99,102,241,0.2)", flexShrink: 0 }}>◈</div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 16, color: "#a5b4fc", letterSpacing: "-.3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{APP_TITLE}</div>
-            <div style={{ fontSize: 9, color: "#374151" }}>{APP_SUBTITLE}</div>
+            <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 16, color: "#4338ca", letterSpacing: "-.3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{APP_TITLE}</div>
+            <div style={{ fontSize: 9, color: "#94a3b8" }}>{APP_SUBTITLE}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
@@ -37,7 +37,7 @@ export default function Header({
               className="btn"
               onClick={onProfile}
               title="Profile / Change Password"
-              style={{ fontSize: 11, color: "#a5b4fc", padding: "4px 10px" }}
+              style={{ fontSize: 11, color: "#4338ca", padding: "4px 10px" }}
             >
               👤 {userName}
             </button>
@@ -47,7 +47,7 @@ export default function Header({
       </div>
       {/* Row 2: Action buttons — scroll horizontally on small screens */}
       <div style={{ display: "flex", gap: 6, padding: "0 16px 8px", overflowX: "auto", scrollbarWidth: "none" }}>
-        <button className="btn" onClick={onReport} style={{ color: "#a5b4fc", flexShrink: 0 }}>📊 Report</button>
+        <button className="btn" onClick={onReport} style={{ color: "#4338ca", flexShrink: 0 }}>📊 Report</button>
         <button className="btn" onClick={onExportCSV} style={{ flexShrink: 0 }}>⬇ CSV</button>
         {isAdmin && <button className="btn" onClick={onImport} style={{ flexShrink: 0 }}>⬆ Import</button>}
         <button className="btn" onClick={onMoveLog} style={{ flexShrink: 0 }}>📋 Log ({moveLogCount})</button>

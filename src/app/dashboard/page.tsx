@@ -350,41 +350,41 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: "'DM Mono','Courier New',monospace", background: "#080b12", minHeight: "100vh", color: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ color: "#4b5563", fontSize: 13 }}>Loading...</div>
+      <div style={{ fontFamily: "'DM Mono','Courier New',monospace", background: "#f8fafc", minHeight: "100vh", color: "#1e293b", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: "#64748b", fontSize: 13 }}>Loading...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ fontFamily: "'DM Mono','Courier New',monospace", background: "#080b12", minHeight: "100vh", color: "#e2e8f0", display: "flex", flexDirection: "column" }}>
+    <div style={{ fontFamily: "'DM Mono','Courier New',monospace", background: "#f8fafc", minHeight: "100vh", color: "#1e293b", display: "flex", flexDirection: "column" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Space+Grotesk:wght@500;600&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
-        ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:#0d1117}::-webkit-scrollbar-thumb{background:#2d3148;border-radius:2px}
-        .btn{background:#111827;border:1px solid #2d3748;color:#e2e8f0;padding:6px 12px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;transition:all .15s}
-        .btn:hover{background:#1e2432;border-color:#6366f1}
+        ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:#ffffff}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+        .btn{background:#f1f5f9;border:1px solid #cbd5e1;color:#1e293b;padding:6px 12px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:11px;transition:all .15s}
+        .btn:hover{background:#e2e8f0;border-color:#6366f1}
         .btn-primary{background:#3730a3!important;border-color:#6366f1!important;color:#fff!important}
         .btn-primary:hover{background:#4338ca!important}
-        .btn-danger{background:#7f1d1d!important;border-color:#ef4444!important;color:#fff!important}
-        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:150;display:flex;align-items:center;justify-content:center;padding:16px}
-        .modal{background:#0f1520;border:1px solid #2d3748;border-radius:12px;padding:20px;width:min(480px,100%);max-height:88vh;overflow-y:auto}
-        input,select,textarea{background:#080b12;border:1px solid #2d3748;color:#e2e8f0;border-radius:5px;padding:7px 10px;font-family:inherit;font-size:12px;width:100%;outline:none;transition:border .15s}
+        .btn-danger{background:#fee2e2!important;border-color:#ef4444!important;color:#fff!important}
+        .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:150;display:flex;align-items:center;justify-content:center;padding:16px}
+        .modal{background:#ffffff;border:1px solid #cbd5e1;border-radius:12px;padding:20px;width:min(480px,100%);max-height:88vh;overflow-y:auto}
+        input,select,textarea{background:#f8fafc;border:1px solid #cbd5e1;color:#1e293b;border-radius:5px;padding:7px 10px;font-family:inherit;font-size:12px;width:100%;outline:none;transition:border .15s}
         input:focus,select:focus,textarea:focus{border-color:#6366f1}
-        select option{background:#0f1520}
+        select option{background:#ffffff}
         .chip{border-radius:4px;transition:all .1s;cursor:grab;user-select:none}
         .chip:hover{opacity:.85}
         .chip:active{cursor:grabbing}
         .room-card{border-radius:8px;transition:border-color .15s}
         .drop-target{box-shadow:0 0 0 2px #6366f1!important}
         .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:500;white-space:nowrap}
-        .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+        .lightbox{position:fixed;inset:0;background:rgba(15,23,42,0.8);z-index:300;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
         .lightbox img{max-width:90vw;max-height:90vh;border-radius:6px}
         .tab-btn{background:none;border:none;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
         .sec-btn{background:none;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:all .15s;border-radius:5px;padding:5px 10px;font-size:11px;white-space:nowrap}
-        .sec-btn.active{background:#111827;border-color:#6366f1;color:#a5b4fc}
-        .sec-btn:not(.active){color:#6b7280}
-        .sec-btn:not(.active):hover{color:#9ca3af;border-color:#374151}
+        .sec-btn.active{background:#f1f5f9;border-color:#6366f1;color:#4338ca}
+        .sec-btn:not(.active){color:#64748b}
+        .sec-btn:not(.active):hover{color:#475569;border-color:#94a3b8}
         .float-entry{animation:floatIn .18s cubic-bezier(.34,1.56,.64,1)}
         @keyframes floatIn{from{opacity:0;transform:scale(.92) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
       `}</style>
@@ -558,10 +558,10 @@ export default function DashboardPage() {
       )}
 
       {selectedItems.size > 0 && (
-        <div style={{ position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)", background: "#0f1520", border: "1px solid #6366f1", borderRadius: 8, padding: "8px 14px", display: "flex", alignItems: "center", gap: 10, zIndex: 190, boxShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>
-          <span style={{ fontSize: 11, color: "#a5b4fc" }}>{selectedItems.size} items selected</span>
+        <div style={{ position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)", background: "#ffffff", border: "1px solid #6366f1", borderRadius: 8, padding: "8px 14px", display: "flex", alignItems: "center", gap: 10, zIndex: 190, boxShadow: "0 4px 20px rgba(15,23,42,0.3)" }}>
+          <span style={{ fontSize: 11, color: "#4338ca" }}>{selectedItems.size} items selected</span>
           <button className="btn" onClick={() => setModal({ type: "bulkmove" })} style={{ fontSize: 10, padding: "3px 10px" }}>⇄ Move All</button>
-          <button onClick={clearSelection} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: 12 }}>✕ Clear</button>
+          <button onClick={clearSelection} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: 12 }}>✕ Clear</button>
         </div>
       )}
 

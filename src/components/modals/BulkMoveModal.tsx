@@ -17,15 +17,15 @@ export default function BulkMoveModal({ count, allLocations, onMove, onClose }: 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#818cf8", marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5", marginBottom: 12 }}>
           Move {count} Items
         </div>
-        <div style={{ fontSize: 11, color: "#4b5563", marginBottom: 12 }}>
+        <div style={{ fontSize: 11, color: "#64748b", marginBottom: 12 }}>
           All {count} selected items will be moved to the same destination.
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Destination *</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Destination *</label>
             <select value={loc} onChange={(e) => setLoc(e.target.value)}>
               {allLocations.map((l) => (
                 <option key={l}>{l}</option>
@@ -33,7 +33,7 @@ export default function BulkMoveModal({ count, allLocations, onMove, onClose }: 
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Reason *</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Reason *</label>
             <textarea
               rows={2}
               placeholder="e.g. Bulk relocation for event..."
@@ -42,7 +42,7 @@ export default function BulkMoveModal({ count, allLocations, onMove, onClose }: 
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Moved By</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Moved By</label>
             <input placeholder="Your name" value={by} onChange={(e) => setBy(e.target.value)} />
           </div>
           <div style={{ display: "flex", gap: 8 }}>

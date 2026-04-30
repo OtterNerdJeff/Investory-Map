@@ -46,12 +46,12 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#818cf8", marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5", marginBottom: 12 }}>
           Report Fault — {item.label}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Fault Type</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Fault Type</label>
             <select value={form.faultType} onChange={(e) => setForm((f) => ({ ...f, faultType: e.target.value }))}>
               {FAULT_TYPES.map((t) => (
                 <option key={t}>{t}</option>
@@ -59,7 +59,7 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Severity</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Severity</label>
             <div style={{ display: "flex", gap: 5 }}>
               {severityOptions.map((s) => {
                 const sc2 = SEV_COLORS[s];
@@ -71,11 +71,11 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
                     style={{
                       flex: 1,
                       padding: "5px 3px",
-                      border: `1px solid ${selected ? sc2.text : "#2d3748"}`,
+                      border: `1px solid ${selected ? sc2.text : "#cbd5e1"}`,
                       borderRadius: 4,
                       cursor: "pointer",
-                      background: selected ? sc2.bg : "#080b12",
-                      color: selected ? sc2.text : "#4b5563",
+                      background: selected ? sc2.bg : "#f8fafc",
+                      color: selected ? sc2.text : "#64748b",
                       fontSize: 10,
                       fontFamily: "inherit",
                     }}
@@ -87,7 +87,7 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
             </div>
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Description</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Description</label>
             <textarea
               rows={3}
               placeholder="Describe the fault..."
@@ -96,7 +96,7 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Reported By</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Reported By</label>
             <input
               placeholder="Your name"
               value={form.reportedBy}
@@ -104,7 +104,7 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Photos</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Photos</label>
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
@@ -113,13 +113,13 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
               }}
               onClick={() => fileRef.current?.click()}
               style={{
-                border: "1px dashed #2d3748",
+                border: "1px dashed #cbd5e1",
                 borderRadius: 5,
                 padding: 10,
                 textAlign: "center",
                 cursor: "pointer",
                 fontSize: 11,
-                color: "#4b5563",
+                color: "#64748b",
               }}
             >
               Tap to capture / browse / drag photos
@@ -141,7 +141,7 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
                     <img
                       src={p}
                       alt=""
-                      style={{ width: 52, height: 52, objectFit: "cover", borderRadius: 4, border: "1px solid #2d3748" }}
+                      style={{ width: 52, height: 52, objectFit: "cover", borderRadius: 4, border: "1px solid #cbd5e1" }}
                     />
                     <button
                       onClick={() =>
@@ -173,13 +173,13 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
                   style={{
                     width: 52,
                     height: 52,
-                    border: "1px dashed #2d3748",
+                    border: "1px dashed #cbd5e1",
                     borderRadius: 4,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     cursor: "pointer",
-                    color: "#4b5563",
+                    color: "#64748b",
                     fontSize: 18,
                   }}
                 >

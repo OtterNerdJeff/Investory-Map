@@ -50,18 +50,19 @@ export default function LoginForm() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#080b12",
+        background: "#f8fafc",
         fontFamily: "'DM Mono','Courier New',monospace",
       }}
     >
       <form
         onSubmit={handleSubmit}
         style={{
-          background: "#0d1117",
-          border: "1px solid #1e2432",
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
           borderRadius: 12,
           padding: 32,
           width: "min(400px, 90vw)",
+          boxShadow: "0 4px 24px rgba(15,23,42,0.08)",
         }}
       >
         <div
@@ -69,7 +70,7 @@ export default function LoginForm() {
             fontFamily: "'Space Grotesk',sans-serif",
             fontWeight: 600,
             fontSize: 20,
-            color: "#818cf8",
+            color: "#4f46e5",
             marginBottom: 4,
             textAlign: "center",
           }}
@@ -79,7 +80,7 @@ export default function LoginForm() {
         <div
           style={{
             fontSize: 11,
-            color: "#4b5563",
+            color: "#64748b",
             textAlign: "center",
             marginBottom: 24,
           }}
@@ -90,11 +91,11 @@ export default function LoginForm() {
         {error && (
           <div
             style={{
-              background: "#7f1d1d",
+              background: "#fee2e2",
               border: "1px solid #ef4444",
               borderRadius: 6,
               padding: "8px 12px",
-              color: "#fca5a5",
+              color: "#dc2626",
               fontSize: 12,
               marginBottom: 16,
             }}
@@ -107,7 +108,7 @@ export default function LoginForm() {
           <label
             style={{
               fontSize: 10,
-              color: "#4b5563",
+              color: "#64748b",
               display: "block",
               marginBottom: 4,
             }}
@@ -120,9 +121,9 @@ export default function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             required
             style={{
-              background: "#080b12",
-              border: "1px solid #2d3748",
-              color: "#e2e8f0",
+              background: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              color: "#1e293b",
               borderRadius: 5,
               padding: "9px 12px",
               fontFamily: "inherit",
@@ -138,7 +139,7 @@ export default function LoginForm() {
           <label
             style={{
               fontSize: 10,
-              color: "#4b5563",
+              color: "#64748b",
               display: "block",
               marginBottom: 4,
             }}
@@ -151,9 +152,9 @@ export default function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             style={{
-              background: "#080b12",
-              border: "1px solid #2d3748",
-              color: "#e2e8f0",
+              background: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              color: "#1e293b",
               borderRadius: 5,
               padding: "9px 12px",
               fontFamily: "inherit",

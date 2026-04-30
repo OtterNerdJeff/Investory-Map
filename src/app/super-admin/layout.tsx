@@ -7,12 +7,12 @@ export default async function SuperAdminLayout({ children }: { children: React.R
   if (session.user.role !== "SUPER_ADMIN") redirect("/dashboard");
 
   return (
-    <div style={{ fontFamily: "'DM Mono','Courier New',monospace", background: "#080b12", minHeight: "100vh", color: "#e2e8f0" }}>
-      <div style={{ background: "#0d1117", borderBottom: "1px solid #1e2432", padding: "10px 16px", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 17, color: "#818cf8" }}>
+    <div style={{ fontFamily: "'DM Mono','Courier New',monospace", background: "#f8fafc", minHeight: "100vh", color: "#1e293b" }}>
+      <div style={{ background: "#ffffff", borderBottom: "1px solid #e2e8f0", padding: "10px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 17, color: "#4f46e5" }}>
           ◈ Investory Map — HQ
         </div>
-        <div style={{ fontSize: 10, color: "#374151", flexGrow: 1 }}>Super Admin Dashboard</div>
+        <div style={{ fontSize: 10, color: "#94a3b8", flexGrow: 1 }}>Super Admin Dashboard</div>
       </div>
       <div style={{ padding: 16 }}>{children}</div>
     </div>

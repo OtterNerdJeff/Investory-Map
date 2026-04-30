@@ -22,8 +22,8 @@ interface SchoolCard {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: "#0d1117",
-  border: "1px solid #1e2432",
+  background: "#ffffff",
+  border: "1px solid #e2e8f0",
   borderRadius: 8,
   padding: 16,
 };
@@ -55,13 +55,13 @@ export default function SuperAdminPage() {
 
   if (loading) {
     return (
-      <div style={{ color: "#818cf8", fontSize: 14, padding: 32 }}>Loading…</div>
+      <div style={{ color: "#4f46e5", fontSize: 14, padding: 32 }}>Loading…</div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ color: "#f87171", fontSize: 14, padding: 32 }}>Error: {error}</div>
+      <div style={{ color: "#dc2626", fontSize: 14, padding: 32 }}>Error: {error}</div>
     );
   }
 
@@ -76,14 +76,14 @@ export default function SuperAdminPage() {
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       {/* Top bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 20, color: "#e2e8f0" }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 20, color: "#1e293b" }}>
           Platform Overview
         </div>
         <button
           onClick={() => router.push("/super-admin/onboard")}
           style={{
-            background: "#818cf8",
-            color: "#080b12",
+            background: "#4f46e5",
+            color: "#f8fafc",
             border: "none",
             borderRadius: 6,
             padding: "8px 16px",
@@ -101,7 +101,7 @@ export default function SuperAdminPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 12, marginBottom: 24 }}>
         {statCards.map((s) => (
           <div key={s.label} style={{ ...cardStyle, textAlign: "center" }}>
-            <div style={{ fontSize: 28, fontWeight: 700, color: "#818cf8", fontFamily: "'Space Grotesk',sans-serif" }}>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#4f46e5", fontFamily: "'Space Grotesk',sans-serif" }}>
               {s.value}
             </div>
             <div style={{ fontSize: 11, color: "#64748b", marginTop: 4 }}>{s.label}</div>
@@ -131,38 +131,38 @@ export default function SuperAdminPage() {
                   cursor: "pointer",
                   transition: "border-color 0.15s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#818cf8")}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#1e2432")}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#4f46e5")}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
               >
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 15, color: "#e2e8f0" }}>
+                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 15, color: "#1e293b" }}>
                       {school.name}
                     </div>
                     <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{school.code}</div>
                   </div>
-                  <div style={{ fontSize: 10, color: "#374151", background: "#111827", border: "1px solid #1e2432", borderRadius: 4, padding: "2px 6px" }}>
+                  <div style={{ fontSize: 10, color: "#94a3b8", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 4, padding: "2px 6px" }}>
                     →
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div style={{ background: "#111827", borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#818cf8" }}>{total}</div>
+                  <div style={{ background: "#f1f5f9", borderRadius: 6, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#4f46e5" }}>{total}</div>
                     <div style={{ fontSize: 10, color: "#64748b" }}>Assets</div>
                   </div>
-                  <div style={{ background: "#111827", borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#818cf8" }}>{school._count.users}</div>
+                  <div style={{ background: "#f1f5f9", borderRadius: 6, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "#4f46e5" }}>{school._count.users}</div>
                     <div style={{ fontSize: 10, color: "#64748b" }}>Users</div>
                   </div>
-                  <div style={{ background: "#111827", borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: school.stats.openFaults > 0 ? "#f87171" : "#4ade80" }}>
+                  <div style={{ background: "#f1f5f9", borderRadius: 6, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: school.stats.openFaults > 0 ? "#dc2626" : "#16a34a" }}>
                       {school.stats.openFaults}
                     </div>
                     <div style={{ fontSize: 10, color: "#64748b" }}>Open Faults</div>
                   </div>
-                  <div style={{ background: "#111827", borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: opPct >= 80 ? "#4ade80" : opPct >= 50 ? "#fbbf24" : "#f87171" }}>
+                  <div style={{ background: "#f1f5f9", borderRadius: 6, padding: "8px 10px" }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: opPct >= 80 ? "#16a34a" : opPct >= 50 ? "#d97706" : "#dc2626" }}>
                       {opPct}%
                     </div>
                     <div style={{ fontSize: 10, color: "#64748b" }}>Operational</div>
