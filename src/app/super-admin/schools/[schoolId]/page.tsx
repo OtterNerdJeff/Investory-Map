@@ -39,17 +39,17 @@ interface AddUserForm {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: "#0d1117",
-  border: "1px solid #1e2432",
+  background: "#ffffff",
+  border: "1px solid #e2e8f0",
   borderRadius: 8,
   padding: 16,
 };
 
 const inputStyle: React.CSSProperties = {
-  background: "#111827",
-  border: "1px solid #1e2432",
+  background: "#f1f5f9",
+  border: "1px solid #e2e8f0",
   borderRadius: 6,
-  color: "#e2e8f0",
+  color: "#1e293b",
   padding: "7px 10px",
   fontSize: 13,
   fontFamily: "'DM Mono','Courier New',monospace",
@@ -58,8 +58,8 @@ const inputStyle: React.CSSProperties = {
 };
 
 const ROLE_BADGE_COLOR: Record<string, string> = {
-  SUPER_ADMIN: "#818cf8",
-  SCHOOL_ADMIN: "#34d399",
+  SUPER_ADMIN: "#4f46e5",
+  SCHOOL_ADMIN: "#059669",
   USER: "#94a3b8",
 };
 
@@ -147,21 +147,21 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
   }
 
   if (loading) {
-    return <div style={{ color: "#818cf8", fontSize: 14, padding: 32 }}>Loading…</div>;
+    return <div style={{ color: "#4f46e5", fontSize: 14, padding: 32 }}>Loading…</div>;
   }
 
   if (error || !school) {
-    return <div style={{ color: "#f87171", fontSize: 14, padding: 32 }}>Error: {error ?? "School not found"}</div>;
+    return <div style={{ color: "#dc2626", fontSize: 14, padding: 32 }}>Error: {error ?? "School not found"}</div>;
   }
 
   const statItems = [
-    { label: "Total", value: school.stats.total, color: "#818cf8" },
-    { label: "Operational", value: school.stats.operational, color: "#4ade80" },
-    { label: "Faulty", value: school.stats.faulty, color: "#f87171" },
-    { label: "Maintenance", value: school.stats.maintenance, color: "#fbbf24" },
+    { label: "Total", value: school.stats.total, color: "#4f46e5" },
+    { label: "Operational", value: school.stats.operational, color: "#16a34a" },
+    { label: "Faulty", value: school.stats.faulty, color: "#dc2626" },
+    { label: "Maintenance", value: school.stats.maintenance, color: "#d97706" },
     { label: "Condemned", value: school.stats.condemned, color: "#94a3b8" },
     { label: "On Loan", value: school.stats.loaned, color: "#60a5fa" },
-    { label: "Warranty Expired", value: school.stats.warrantyExpired, color: "#fb923c" },
+    { label: "Warranty Expired", value: school.stats.warrantyExpired, color: "#c2410c" },
   ];
 
   return (
@@ -172,7 +172,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
         style={{
           background: "none",
           border: "none",
-          color: "#818cf8",
+          color: "#4f46e5",
           cursor: "pointer",
           fontSize: 13,
           padding: 0,
@@ -185,7 +185,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
 
       {/* School header */}
       <div style={{ ...cardStyle, marginBottom: 16 }}>
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 22, color: "#e2e8f0" }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 22, color: "#1e293b" }}>
           {school.name}
         </div>
         <div style={{ display: "flex", gap: 16, marginTop: 6, flexWrap: "wrap" }}>
@@ -221,7 +221,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid #1e2432" }}>
+              <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
                 {["Name", "Email", "Role", "Created"].map((h) => (
                   <th key={h} style={{ textAlign: "left", padding: "6px 8px", color: "#64748b", fontWeight: 600, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     {h}
@@ -231,8 +231,8 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
             </thead>
             <tbody>
               {school.users.map((u) => (
-                <tr key={u.id} style={{ borderBottom: "1px solid #111827" }}>
-                  <td style={{ padding: "8px 8px", color: "#e2e8f0" }}>{u.name}</td>
+                <tr key={u.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                  <td style={{ padding: "8px 8px", color: "#1e293b" }}>{u.name}</td>
                   <td style={{ padding: "8px 8px", color: "#94a3b8" }}>{u.email}</td>
                   <td style={{ padding: "8px 8px" }}>
                     <select
@@ -240,7 +240,7 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
                       disabled={roleChanging === u.id}
                       onChange={(e) => handleRoleChange(u.id, e.target.value)}
                       style={{
-                        background: "#111827",
+                        background: "#f1f5f9",
                         border: `1px solid ${ROLE_BADGE_COLOR[u.role] ?? "#94a3b8"}55`,
                         borderRadius: 4,
                         color: ROLE_BADGE_COLOR[u.role] ?? "#94a3b8",
@@ -267,8 +267,8 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
         )}
 
         {/* Add User form */}
-        <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #1e2432" }}>
-          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 13, color: "#818cf8", marginBottom: 12 }}>
+        <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid #e2e8f0" }}>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 13, color: "#4f46e5", marginBottom: 12 }}>
             Add User
           </div>
           <form onSubmit={handleAddUser}>
@@ -314,14 +314,14 @@ export default function SchoolDetailPage({ params }: { params: Promise<{ schoolI
                 </select>
               </div>
             </div>
-            {addError && <div style={{ color: "#f87171", fontSize: 12, marginBottom: 8 }}>{addError}</div>}
-            {addSuccess && <div style={{ color: "#4ade80", fontSize: 12, marginBottom: 8 }}>User added successfully.</div>}
+            {addError && <div style={{ color: "#dc2626", fontSize: 12, marginBottom: 8 }}>{addError}</div>}
+            {addSuccess && <div style={{ color: "#16a34a", fontSize: 12, marginBottom: 8 }}>User added successfully.</div>}
             <button
               type="submit"
               disabled={addLoading}
               style={{
-                background: addLoading ? "#374151" : "#818cf8",
-                color: "#080b12",
+                background: addLoading ? "#94a3b8" : "#4f46e5",
+                color: "#f8fafc",
                 border: "none",
                 borderRadius: 6,
                 padding: "8px 18px",

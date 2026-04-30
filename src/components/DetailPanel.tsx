@@ -85,35 +85,35 @@ export function RemarkCommentDisplay({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
       <div>
-        <div style={{ fontSize: 9, color: "#4b5563", marginBottom: 2 }}>REMARK (item info)</div>
+        <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>REMARK (item info)</div>
         <div
           style={{
             fontSize: 11,
-            color: "#9ca3af",
-            background: "#080b12",
-            border: "1px solid #1e2432",
+            color: "#475569",
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
             borderRadius: 4,
             padding: "5px 8px",
             minHeight: 26,
           }}
         >
-          {remark || <span style={{ color: "#2d3748" }}>—</span>}
+          {remark || <span style={{ color: "#cbd5e1" }}>—</span>}
         </div>
       </div>
       <div>
-        <div style={{ fontSize: 9, color: "#4b5563", marginBottom: 2 }}>COMMENT (admin note)</div>
+        <div style={{ fontSize: 9, color: "#64748b", marginBottom: 2 }}>COMMENT (admin note)</div>
         <div
           style={{
             fontSize: 11,
-            color: "#9ca3af",
-            background: "#080b12",
-            border: "1px solid #1e2432",
+            color: "#475569",
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
             borderRadius: 4,
             padding: "5px 8px",
             minHeight: 26,
           }}
         >
-          {comment || <span style={{ color: "#2d3748" }}>—</span>}
+          {comment || <span style={{ color: "#cbd5e1" }}>—</span>}
         </div>
       </div>
     </div>
@@ -135,8 +135,8 @@ export function RemarkCommentFields({
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-          <label style={{ fontSize: 10, color: "#4b5563" }}>Remark (item info)</label>
-          <span style={{ fontSize: 9, color: remark.length > 270 ? "#ef4444" : "#4b5563" }}>
+          <label style={{ fontSize: 10, color: "#64748b" }}>Remark (item info)</label>
+          <span style={{ fontSize: 9, color: remark.length > 270 ? "#ef4444" : "#64748b" }}>
             {remark.length}/300
           </span>
         </div>
@@ -150,8 +150,8 @@ export function RemarkCommentFields({
       </div>
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-          <label style={{ fontSize: 10, color: "#4b5563" }}>Comment (admin note)</label>
-          <span style={{ fontSize: 9, color: comment.length > 270 ? "#ef4444" : "#4b5563" }}>
+          <label style={{ fontSize: 10, color: "#64748b" }}>Comment (admin note)</label>
+          <span style={{ fontSize: 9, color: comment.length > 270 ? "#ef4444" : "#64748b" }}>
             {comment.length}/300
           </span>
         </div>
@@ -260,10 +260,10 @@ export default function DetailPanel({
         top: pos.y,
         width: 360,
         maxHeight: "82vh",
-        background: "rgba(10,14,25,0.97)",
+        background: "rgba(255,255,255,0.97)",
         border: `1px solid ${s.border}`,
         borderRadius: 12,
-        boxShadow: `0 0 0 1px rgba(99,102,241,0.15), 0 8px 40px rgba(0,0,0,0.7), 0 0 20px ${s.border}22`,
+        boxShadow: `0 0 0 1px rgba(99,102,241,0.15), 0 8px 40px rgba(15,23,42,0.4), 0 0 20px ${s.border}22`,
         zIndex: 200,
         display: "flex",
         flexDirection: "column",
@@ -279,20 +279,20 @@ export default function DetailPanel({
         onTouchMove={onTouchMove}
         style={{
           padding: "10px 14px 8px",
-          borderBottom: "1px solid #1e2432",
+          borderBottom: "1px solid #e2e8f0",
           cursor: dragging ? "grabbing" : "grab",
           display: "flex",
           alignItems: "center",
           gap: 8,
           flexShrink: 0,
           borderRadius: "12px 12px 0 0",
-          background: "linear-gradient(135deg,rgba(30,32,64,0.8),rgba(15,18,32,0.8))",
+          background: "linear-gradient(135deg,rgba(248,250,252,0.95),rgba(241,245,249,0.95))",
         }}
       >
         <span
           style={{
             fontSize: 11,
-            color: "#818cf8",
+            color: "#4f46e5",
             fontFamily: "'Space Grotesk',sans-serif",
             fontWeight: 600,
             overflow: "hidden",
@@ -303,14 +303,14 @@ export default function DetailPanel({
         >
           {item.label}
         </span>
-        <span style={{ fontSize: 9, color: "#374151", flexShrink: 0 }}>⠿ drag</span>
+        <span style={{ fontSize: 9, color: "#94a3b8", flexShrink: 0 }}>⠿ drag</span>
         <button
           className="no-drag"
           onClick={onClose}
           style={{
             background: "rgba(239,68,68,0.15)",
             border: "1px solid #ef4444",
-            color: "#fca5a5",
+            color: "#dc2626",
             width: 22,
             height: 22,
             borderRadius: 5,
@@ -331,24 +331,24 @@ export default function DetailPanel({
       {/* Status + action bar */}
       <div
         className="no-drag"
-        style={{ padding: "8px 14px", borderBottom: "1px solid #1e2432", flexShrink: 0 }}
+        style={{ padding: "8px 14px", borderBottom: "1px solid #e2e8f0", flexShrink: 0 }}
       >
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
           <span className="badge" style={{ background: s.badge, color: s.text }}>
             {item.status}
           </span>
           {openF > 0 && (
-            <span className="badge" style={{ background: "#7f1d1d", color: "#fca5a5" }}>
+            <span className="badge" style={{ background: "#fee2e2", color: "#dc2626" }}>
               ⚠ {openF}
             </span>
           )}
           {item.isLoaned && (
-            <span className="badge" style={{ background: "#4a1d96", color: "#c084fc" }}>
+            <span className="badge" style={{ background: "#f3e8ff", color: "#7c3aed" }}>
               📤 {item.loanedTo}
             </span>
           )}
           {item.assetCode && (
-            <span className="badge" style={{ background: "#1e2432", color: "#4b5563" }}>
+            <span className="badge" style={{ background: "#e2e8f0", color: "#64748b" }}>
               #{item.assetCode}
             </span>
           )}
@@ -359,9 +359,9 @@ export default function DetailPanel({
             style={{
               fontSize: 9,
               padding: "3px 8px",
-              background: "#4c1d95",
+              background: "#f3e8ff",
               borderColor: "#7c3aed",
-              color: "#c4b5fd",
+              color: "#6d28d9",
             }}
             onClick={onReportFault}
           >
@@ -376,9 +376,9 @@ export default function DetailPanel({
               style={{
                 fontSize: 9,
                 padding: "3px 8px",
-                background: "#064e3b",
+                background: "#d1fae5",
                 borderColor: "#059669",
-                color: "#6ee7b7",
+                color: "#047857",
               }}
               onClick={onLoanOut}
             >
@@ -391,9 +391,9 @@ export default function DetailPanel({
               style={{
                 fontSize: 9,
                 padding: "3px 8px",
-                background: "#1e3a5f",
+                background: "#dbeafe",
                 borderColor: "#3b82f6",
-                color: "#93c5fd",
+                color: "#1d4ed8",
               }}
               onClick={onReturn}
             >
@@ -410,7 +410,7 @@ export default function DetailPanel({
           display: "flex",
           gap: 2,
           padding: "6px 14px 0",
-          borderBottom: "1px solid #1e2432",
+          borderBottom: "1px solid #e2e8f0",
           flexShrink: 0,
         }}
       >
@@ -430,9 +430,9 @@ export default function DetailPanel({
               padding: "3px 9px",
               fontSize: 10,
               borderRadius: "4px 4px 0 0",
-              background: detailTab === k ? "#1a1d2e" : "none",
-              color: detailTab === k ? "#a5b4fc" : "#4b5563",
-              border: detailTab === k ? "1px solid #2d3748" : "1px solid transparent",
+              background: detailTab === k ? "#ede9fe" : "none",
+              color: detailTab === k ? "#4338ca" : "#64748b",
+              border: detailTab === k ? "1px solid #cbd5e1" : "1px solid transparent",
               borderBottom: "none",
             }}
           >
@@ -461,7 +461,7 @@ export default function DetailPanel({
                 ] as [string, string][]
               ).map(([k, l]) => (
                 <div key={k}>
-                  <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>
+                  <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>
                     {l}
                   </label>
                   <input
@@ -471,7 +471,7 @@ export default function DetailPanel({
                 </div>
               ))}
               <div>
-                <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>
+                <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>
                   Location
                 </label>
                 <select
@@ -484,7 +484,7 @@ export default function DetailPanel({
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>
+                <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>
                   Warranty End
                 </label>
                 <input
@@ -494,7 +494,7 @@ export default function DetailPanel({
                 />
               </div>
               <div>
-                <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>
+                <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>
                   Type
                 </label>
                 <select
@@ -525,7 +525,7 @@ export default function DetailPanel({
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 2 }}>
+                <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>
                   Status
                 </label>
                 <select
@@ -554,7 +554,7 @@ export default function DetailPanel({
               <label
                 style={{
                   fontSize: 10,
-                  color: "#4b5563",
+                  color: "#64748b",
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
@@ -592,7 +592,7 @@ export default function DetailPanel({
             </div>
           ) : (
             <div>
-              <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 6 }}>
+              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>
                 {getTypeIcon(item.type)} {item.type} · {item.brand} {item.model}
               </div>
               <div style={{ display: "grid", gap: 3, marginBottom: 10 }}>
@@ -613,8 +613,8 @@ export default function DetailPanel({
                             color: isExpired(item.warrantyEnd)
                               ? "#ef4444"
                               : expiringSoon(item.warrantyEnd)
-                              ? "#facc15"
-                              : "#4ade80",
+                              ? "#d97706"
+                              : "#16a34a",
                           }}
                         >
                           {fmtDate(item.warrantyEnd)}
@@ -637,14 +637,14 @@ export default function DetailPanel({
                       display: "flex",
                       justifyContent: "space-between",
                       padding: "3px 0",
-                      borderBottom: "1px solid #0d1117",
+                      borderBottom: "1px solid #ffffff",
                       fontSize: 11,
                     }}
                   >
-                    <span style={{ color: "#4b5563" }}>{k}</span>
+                    <span style={{ color: "#64748b" }}>{k}</span>
                     <span
                       style={{
-                        color: "#e2e8f0",
+                        color: "#1e293b",
                         textAlign: "right",
                         maxWidth: "60%",
                         wordBreak: "break-all",
@@ -656,7 +656,7 @@ export default function DetailPanel({
                 ))}
               </div>
               {(item.statusNote as string | undefined) && (
-                <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 8 }}>
+                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}>
                   Status note: {item.statusNote as string}
                 </div>
               )}
@@ -692,7 +692,7 @@ export default function DetailPanel({
         {detailTab === "faults" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {(item.faults || []).length === 0 && (
-              <div style={{ color: "#2d3748", fontSize: 12, textAlign: "center", padding: 20 }}>
+              <div style={{ color: "#cbd5e1", fontSize: 12, textAlign: "center", padding: 20 }}>
                 No fault records
               </div>
             )}
@@ -702,8 +702,8 @@ export default function DetailPanel({
                 <div
                   key={f.id}
                   style={{
-                    background: "#080b12",
-                    border: "1px solid #1e2432",
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
                     borderRadius: 5,
                     padding: 9,
                   }}
@@ -724,22 +724,22 @@ export default function DetailPanel({
                       {f.severity}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 500 }}>{f.faultType}</span>
-                    <span style={{ fontSize: 9, color: "#2d3748", marginLeft: "auto" }}>
+                    <span style={{ fontSize: 9, color: "#cbd5e1", marginLeft: "auto" }}>
                       {fmtDate(f.date)}
                     </span>
                   </div>
                   {f.description && (
-                    <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 3 }}>
+                    <div style={{ fontSize: 11, color: "#475569", marginBottom: 3 }}>
                       {f.description}
                     </div>
                   )}
                   {f.reportedBy && (
-                    <div style={{ fontSize: 10, color: "#4b5563", marginBottom: 3 }}>
+                    <div style={{ fontSize: 10, color: "#64748b", marginBottom: 3 }}>
                       By: {f.reportedBy}
                     </div>
                   )}
                   {f.resolvedBy && (
-                    <div style={{ fontSize: 10, color: "#4ade80", marginBottom: 3 }}>
+                    <div style={{ fontSize: 10, color: "#16a34a", marginBottom: 3 }}>
                       Resolved by {f.resolvedBy}: {f.resolutionNote}
                     </div>
                   )}
@@ -763,7 +763,7 @@ export default function DetailPanel({
                             objectFit: "cover",
                             borderRadius: 3,
                             cursor: "pointer",
-                            border: "1px solid #2d3748",
+                            border: "1px solid #cbd5e1",
                           }}
                           onClick={() => setLightbox(p)}
                         />
@@ -810,8 +810,8 @@ export default function DetailPanel({
             {showRepair && (
               <div
                 style={{
-                  background: "#080b12",
-                  border: "1px solid #1e2432",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
                   borderRadius: 5,
                   padding: 9,
                   marginBottom: 9,
@@ -832,7 +832,7 @@ export default function DetailPanel({
                 />
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                   <div>
-                    <label style={{ fontSize: 9, color: "#4b5563" }}>Start Date</label>
+                    <label style={{ fontSize: 9, color: "#64748b" }}>Start Date</label>
                     <input
                       type="date"
                       value={repairForm.startDate}
@@ -840,7 +840,7 @@ export default function DetailPanel({
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: 9, color: "#4b5563" }}>Complete</label>
+                    <label style={{ fontSize: 9, color: "#64748b" }}>Complete</label>
                     <input
                       type="date"
                       value={repairForm.completeDate}
@@ -882,7 +882,7 @@ export default function DetailPanel({
               </div>
             )}
             {(item.repairs as unknown as RepairEntry[] | undefined || []).length === 0 && (
-              <div style={{ color: "#2d3748", fontSize: 12, textAlign: "center", padding: 20 }}>
+              <div style={{ color: "#cbd5e1", fontSize: 12, textAlign: "center", padding: 20 }}>
                 No repair records
               </div>
             )}
@@ -890,8 +890,8 @@ export default function DetailPanel({
               <div
                 key={r.id}
                 style={{
-                  background: "#080b12",
-                  border: "1px solid #1e2432",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
                   borderRadius: 5,
                   padding: 9,
                   marginBottom: 6,
@@ -899,22 +899,22 @@ export default function DetailPanel({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                   <span style={{ fontSize: 11, fontWeight: 500 }}>{r.description}</span>
-                  <span style={{ fontSize: 9, color: "#2d3748" }}>{fmtDate(r.loggedDate)}</span>
+                  <span style={{ fontSize: 9, color: "#cbd5e1" }}>{fmtDate(r.loggedDate)}</span>
                 </div>
                 {r.technician && (
-                  <div style={{ fontSize: 10, color: "#4b5563" }}>Tech: {r.technician}</div>
+                  <div style={{ fontSize: 10, color: "#64748b" }}>Tech: {r.technician}</div>
                 )}
                 {r.startDate && (
-                  <div style={{ fontSize: 10, color: "#6b7280" }}>
+                  <div style={{ fontSize: 10, color: "#64748b" }}>
                     Start: {fmtDate(r.startDate)}
                     {r.completeDate ? ` → ${fmtDate(r.completeDate)}` : ""}
                   </div>
                 )}
                 {r.costRepair && (
-                  <div style={{ fontSize: 10, color: "#4ade80" }}>Cost: ${r.costRepair}</div>
+                  <div style={{ fontSize: 10, color: "#16a34a" }}>Cost: ${r.costRepair}</div>
                 )}
                 {r.notes && (
-                  <div style={{ fontSize: 10, color: "#9ca3af", marginTop: 3 }}>{r.notes}</div>
+                  <div style={{ fontSize: 10, color: "#475569", marginTop: 3 }}>{r.notes}</div>
                 )}
               </div>
             ))}
@@ -924,9 +924,9 @@ export default function DetailPanel({
         {/* HISTORY TAB */}
         {detailTab === "history" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ fontSize: 10, color: "#818cf8", marginBottom: 4 }}>Movement Log</div>
+            <div style={{ fontSize: 10, color: "#4f46e5", marginBottom: 4 }}>Movement Log</div>
             {(item.moveLog as unknown as MoveEntry[] | undefined || []).length === 0 && (
-              <div style={{ color: "#2d3748", fontSize: 11, textAlign: "center", padding: 12 }}>
+              <div style={{ color: "#cbd5e1", fontSize: 11, textAlign: "center", padding: 12 }}>
                 No movements
               </div>
             )}
@@ -934,29 +934,29 @@ export default function DetailPanel({
               <div
                 key={m.id}
                 style={{
-                  background: "#080b12",
-                  border: "1px solid #1e2432",
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
                   borderRadius: 5,
                   padding: 8,
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                  <span style={{ fontSize: 11, color: "#9ca3af" }}>
+                  <span style={{ fontSize: 11, color: "#475569" }}>
                     {m.from} → {m.to}
                   </span>
-                  <span style={{ fontSize: 9, color: "#2d3748" }}>{fmtDate(m.date)}</span>
+                  <span style={{ fontSize: 9, color: "#cbd5e1" }}>{fmtDate(m.date)}</span>
                 </div>
-                <div style={{ fontSize: 10, color: "#6b7280" }}>Reason: {m.reason}</div>
+                <div style={{ fontSize: 10, color: "#64748b" }}>Reason: {m.reason}</div>
                 {m.movedBy && (
-                  <div style={{ fontSize: 10, color: "#4b5563" }}>By: {m.movedBy}</div>
+                  <div style={{ fontSize: 10, color: "#64748b" }}>By: {m.movedBy}</div>
                 )}
               </div>
             ))}
-            <div style={{ fontSize: 10, color: "#818cf8", marginTop: 6, marginBottom: 4 }}>
+            <div style={{ fontSize: 10, color: "#4f46e5", marginTop: 6, marginBottom: 4 }}>
               Loan History
             </div>
             {(item.loanHistory as unknown as LoanEntry[] | undefined || []).length === 0 && (
-              <div style={{ color: "#2d3748", fontSize: 11, textAlign: "center", padding: 12 }}>
+              <div style={{ color: "#cbd5e1", fontSize: 11, textAlign: "center", padding: 12 }}>
                 No loan records
               </div>
             )}
@@ -964,8 +964,8 @@ export default function DetailPanel({
               <div
                 key={l.id}
                 style={{
-                  background: "#080b12",
-                  border: `1px solid ${l.status === "Active" ? "#6366f1" : "#1e2432"}`,
+                  background: "#f8fafc",
+                  border: `1px solid ${l.status === "Active" ? "#6366f1" : "#e2e8f0"}`,
                   borderRadius: 5,
                   padding: 8,
                 }}
@@ -974,7 +974,7 @@ export default function DetailPanel({
                   <span
                     style={{
                       fontSize: 11,
-                      color: l.status === "Active" ? "#818cf8" : "#9ca3af",
+                      color: l.status === "Active" ? "#4f46e5" : "#475569",
                     }}
                   >
                     {l.borrowerName}
@@ -982,25 +982,25 @@ export default function DetailPanel({
                   <span
                     className="badge"
                     style={{
-                      background: l.status === "Active" ? "#312e81" : "#1e2432",
-                      color: l.status === "Active" ? "#a5b4fc" : "#6b7280",
+                      background: l.status === "Active" ? "#e0e7ff" : "#e2e8f0",
+                      color: l.status === "Active" ? "#4338ca" : "#64748b",
                       fontSize: 9,
                     }}
                   >
                     {l.status}
                   </span>
                 </div>
-                <div style={{ fontSize: 10, color: "#6b7280" }}>
+                <div style={{ fontSize: 10, color: "#64748b" }}>
                   Out: {fmtDate(l.dateOut)}
                   {l.dateIn ? ` · Returned: ${fmtDate(l.dateIn)}` : ""}
                 </div>
                 {l.expectedReturn && (
-                  <div style={{ fontSize: 10, color: "#4b5563" }}>
+                  <div style={{ fontSize: 10, color: "#64748b" }}>
                     Expected: {fmtDate(l.expectedReturn)}
                   </div>
                 )}
                 {l.signature && (
-                  <div style={{ fontSize: 10, color: "#4ade80", marginTop: 2 }}>✓ Signed</div>
+                  <div style={{ fontSize: 10, color: "#16a34a", marginTop: 2 }}>✓ Signed</div>
                 )}
               </div>
             ))}

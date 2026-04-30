@@ -26,40 +26,40 @@ export const STATUS_COLORS: Record<
   { bg: string; border: string; text: string; badge: string }
 > = {
   Operational: {
-    bg: "#052e16",
+    bg: "#dcfce7",
     border: "#16a34a",
-    text: "#4ade80",
-    badge: "#14532d",
+    text: "#16a34a",
+    badge: "#dcfce7",
   },
   Spare: {
-    bg: "#1e1b4b",
+    bg: "#e0e7ff",
     border: "#6366f1",
-    text: "#a5b4fc",
-    badge: "#312e81",
+    text: "#4338ca",
+    badge: "#e0e7ff",
   },
   "Waiting for Condemnation": {
-    bg: "#450a0a",
+    bg: "#fee2e2",
     border: "#dc2626",
-    text: "#fca5a5",
-    badge: "#7f1d1d",
+    text: "#dc2626",
+    badge: "#fee2e2",
   },
   Others: {
-    bg: "#1c1917",
+    bg: "#f1f5f9",
     border: "#78716c",
-    text: "#d4d0cb",
-    badge: "#44403c",
+    text: "#64748b",
+    badge: "#f1f5f9",
   },
   "Under Maintenance": {
-    bg: "#422006",
+    bg: "#fef3c7",
     border: "#f59e0b",
-    text: "#fcd34d",
-    badge: "#78350f",
+    text: "#d97706",
+    badge: "#fef3c7",
   },
   Faulty: {
-    bg: "#450a0a",
+    bg: "#fee2e2",
     border: "#ef4444",
-    text: "#fca5a5",
-    badge: "#7f1d1d",
+    text: "#dc2626",
+    badge: "#fee2e2",
   },
 };
 
@@ -100,10 +100,10 @@ export const FAULT_TYPES = [
 ] as const;
 
 export const SEV_COLORS: Record<string, { bg: string; text: string }> = {
-  Low: { bg: "#14532d", text: "#4ade80" },
-  Medium: { bg: "#78350f", text: "#fcd34d" },
-  High: { bg: "#7c2d12", text: "#fb923c" },
-  Critical: { bg: "#7f1d1d", text: "#fca5a5" },
+  Low: { bg: "#dcfce7", text: "#16a34a" },
+  Medium: { bg: "#fef3c7", text: "#d97706" },
+  High: { bg: "#fff7ed", text: "#c2410c" },
+  Critical: { bg: "#fee2e2", text: "#dc2626" },
 };
 
 export const CONDEMNED_SECTION = "Condemned / Pending Disposal";

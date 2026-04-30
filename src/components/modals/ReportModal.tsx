@@ -62,23 +62,23 @@ export default function ReportModal({ items, onClose }: ReportModalProps) {
   };
 
   const summaryRows: Array<[string, number, string]> = [
-    ["Total", items.length, "#818cf8"],
-    ["Operational", items.filter((i) => i.status === "Operational").length, "#4ade80"],
-    ["On Loan", items.filter((i) => i.isLoaned).length, "#c084fc"],
+    ["Total", items.length, "#4f46e5"],
+    ["Operational", items.filter((i) => i.status === "Operational").length, "#16a34a"],
+    ["On Loan", items.filter((i) => i.isLoaned).length, "#7c3aed"],
     ["Expired Warranty", expired.length, "#ef4444"],
     [
       "Open Faults",
       items.reduce((n, i) => n + (i.faults || []).filter((f) => f.status !== "Resolved").length, 0),
-      "#f97316",
+      "#c2410c",
     ],
-    ["Condemned", items.filter((i) => i.status === "Waiting for Condemnation").length, "#fb923c"],
+    ["Condemned", items.filter((i) => i.status === "Waiting for Condemnation").length, "#c2410c"],
   ];
 
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ width: "min(600px,100%)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14, alignItems: "center" }}>
-          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#818cf8" }}>
+          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5" }}>
             {APP_TITLE} — Inventory Report
           </div>
           <div style={{ display: "flex", gap: 6 }}>
@@ -87,7 +87,7 @@ export default function ReportModal({ items, onClose }: ReportModalProps) {
             </button>
             <button
               onClick={onClose}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563", fontSize: 20 }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: 20 }}
             >
               ×
             </button>
@@ -105,8 +105,8 @@ export default function ReportModal({ items, onClose }: ReportModalProps) {
             <div
               key={l}
               style={{
-                background: "#080b12",
-                border: "1px solid #1e2432",
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
                 borderRadius: 6,
                 padding: "8px 10px",
                 textAlign: "center",
@@ -122,13 +122,13 @@ export default function ReportModal({ items, onClose }: ReportModalProps) {
               >
                 {v}
               </div>
-              <div style={{ fontSize: 9, color: "#374151", marginTop: 2 }}>{l}</div>
+              <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 2 }}>{l}</div>
             </div>
           ))}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <div>
-            <div style={{ fontSize: 11, color: "#818cf8", marginBottom: 6 }}>By Type</div>
+            <div style={{ fontSize: 11, color: "#4f46e5", marginBottom: 6 }}>By Type</div>
             {Object.entries(byType)
               .sort((a, b) => b[1] - a[1])
               .map(([k, v]) => (
@@ -138,19 +138,19 @@ export default function ReportModal({ items, onClose }: ReportModalProps) {
                     display: "flex",
                     justifyContent: "space-between",
                     padding: "3px 0",
-                    borderBottom: "1px solid #0d1117",
+                    borderBottom: "1px solid #ffffff",
                     fontSize: 11,
                   }}
                 >
-                  <span style={{ color: "#9ca3af" }}>
+                  <span style={{ color: "#475569" }}>
                     {getTypeIcon(k)} {k}
                   </span>
-                  <span style={{ color: "#e2e8f0" }}>{v}</span>
+                  <span style={{ color: "#1e293b" }}>{v}</span>
                 </div>
               ))}
           </div>
           <div>
-            <div style={{ fontSize: 11, color: "#818cf8", marginBottom: 6 }}>By Brand</div>
+            <div style={{ fontSize: 11, color: "#4f46e5", marginBottom: 6 }}>By Brand</div>
             {Object.entries(byBrand)
               .sort((a, b) => b[1] - a[1])
               .map(([k, v]) => (
@@ -160,12 +160,12 @@ export default function ReportModal({ items, onClose }: ReportModalProps) {
                     display: "flex",
                     justifyContent: "space-between",
                     padding: "3px 0",
-                    borderBottom: "1px solid #0d1117",
+                    borderBottom: "1px solid #ffffff",
                     fontSize: 11,
                   }}
                 >
-                  <span style={{ color: "#9ca3af" }}>{k}</span>
-                  <span style={{ color: "#e2e8f0" }}>{v}</span>
+                  <span style={{ color: "#475569" }}>{k}</span>
+                  <span style={{ color: "#1e293b" }}>{v}</span>
                 </div>
               ))}
           </div>
@@ -182,14 +182,14 @@ export default function ReportModal({ items, onClose }: ReportModalProps) {
                     gap: 8,
                     fontSize: 10,
                     padding: "2px 0",
-                    borderBottom: "1px solid #0d1117",
+                    borderBottom: "1px solid #ffffff",
                   }}
                 >
-                  <span style={{ color: "#818cf8", minWidth: 80 }}>{i.label}</span>
-                  <span style={{ color: "#9ca3af", flex: 1 }}>
+                  <span style={{ color: "#4f46e5", minWidth: 80 }}>{i.label}</span>
+                  <span style={{ color: "#475569", flex: 1 }}>
                     {i.brand} {i.model}
                   </span>
-                  <span style={{ color: "#374151" }}>{i.location}</span>
+                  <span style={{ color: "#94a3b8" }}>{i.location}</span>
                   <span style={{ color: "#ef4444" }}>{fmtDate(i.warrantyEnd)}</span>
                 </div>
               ))}

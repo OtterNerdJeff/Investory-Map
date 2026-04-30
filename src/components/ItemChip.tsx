@@ -51,7 +51,7 @@ export default function ItemChip({
       onDragStart={(e) => onDragStart(e, item)}
       onDragEnd={onDragEnd}
       style={{
-        background: isSelected ? "#1e2240" : "#080b12",
+        background: isSelected ? "#e0e7ff" : "#f8fafc",
         border: `1px solid ${isSelected ? "#6366f1" : s.border}`,
         padding: "3px 6px",
         display: "flex",
@@ -69,7 +69,7 @@ export default function ItemChip({
         <div
           style={{
             fontSize: 10,
-            color: isSelected ? "#a5b4fc" : "#e2e8f0",
+            color: isSelected ? "#4338ca" : "#1e293b",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -77,15 +77,15 @@ export default function ItemChip({
         >
           {item.label}
         </div>
-        <div style={{ fontSize: 9, color: "#374151" }}>
+        <div style={{ fontSize: 9, color: "#94a3b8" }}>
           {item.brand} {item.model}
         </div>
       </div>
       {openF > 0 && (
-        <span style={{ fontSize: 9, color: "#fca5a5", flexShrink: 0 }}>⚠{openF}</span>
+        <span style={{ fontSize: 9, color: "#dc2626", flexShrink: 0 }}>⚠{openF}</span>
       )}
       {item.isLoaned && (
-        <span style={{ fontSize: 9, color: "#c084fc", flexShrink: 0 }}>📤</span>
+        <span style={{ fontSize: 9, color: "#7c3aed", flexShrink: 0 }}>📤</span>
       )}
       {isExpired(item.warrantyEnd) && (
         <span style={{ fontSize: 9, color: "#ef4444", flexShrink: 0 }}>W!</span>
@@ -100,7 +100,7 @@ export default function ItemChip({
           background: "none",
           border: "none",
           cursor: "pointer",
-          color: isSelected ? "#6366f1" : "#1e2432",
+          color: isSelected ? "#6366f1" : "#94a3b8",
           fontSize: 10,
           padding: "0 1px",
           flexShrink: 0,
@@ -117,7 +117,7 @@ export default function ItemChip({
           background: "none",
           border: "none",
           cursor: "pointer",
-          color: "#374151",
+          color: "#94a3b8",
           fontSize: 10,
           padding: "0 1px",
           flexShrink: 0,

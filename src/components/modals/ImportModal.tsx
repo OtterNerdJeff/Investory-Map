@@ -89,25 +89,25 @@ export default function ImportModal({ onSuccess, onClose }: ImportModalProps) {
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#818cf8", marginBottom: 8 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5", marginBottom: 8 }}>
           Bulk Import CSV
         </div>
-        <div style={{ fontSize: 10, color: "#4b5563", marginBottom: 10 }}>
+        <div style={{ fontSize: 10, color: "#64748b", marginBottom: 10 }}>
           Headers: label, assetCode, type, brand, model, serial, location, cost, warrantyEnd, status, loanable, remark, comment
         </div>
         <input type="file" accept=".csv" onChange={handle} style={{ marginBottom: 10 }} />
-        {err && <div style={{ color: "#fca5a5", fontSize: 11, marginBottom: 8 }}>{err}</div>}
+        {err && <div style={{ color: "#dc2626", fontSize: 11, marginBottom: 8 }}>{err}</div>}
         {preview.length > 0 && (
           <div>
-            <div style={{ fontSize: 11, color: "#4ade80", marginBottom: 6 }}>{preview.length} items ready</div>
+            <div style={{ fontSize: 11, color: "#16a34a", marginBottom: 6 }}>{preview.length} items ready</div>
             <div style={{ maxHeight: 150, overflow: "auto", marginBottom: 10 }}>
               {preview.slice(0, 8).map((i, idx) => (
-                <div key={idx} style={{ fontSize: 10, color: "#9ca3af", padding: "2px 0" }}>
+                <div key={idx} style={{ fontSize: 10, color: "#475569", padding: "2px 0" }}>
                   {i.label} — {i.brand} {i.model} @ {i.location}
                 </div>
               ))}
               {preview.length > 8 && (
-                <div style={{ fontSize: 10, color: "#374151" }}>...+{preview.length - 8} more</div>
+                <div style={{ fontSize: 10, color: "#94a3b8" }}>...+{preview.length - 8} more</div>
               )}
             </div>
             <button

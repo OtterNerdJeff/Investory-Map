@@ -35,7 +35,7 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
     if (!c) return;
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    ctx.fillStyle = "#080b12";
+    ctx.fillStyle = "#f8fafc";
     ctx.fillRect(0, 0, c.width, c.height);
   }, []);
 
@@ -78,7 +78,7 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
     if (!c) return;
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    ctx.strokeStyle = "#818cf8";
+    ctx.strokeStyle = "#4f46e5";
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
     const pt = getCoords(e);
@@ -95,7 +95,7 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
     if (!c) return;
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    ctx.fillStyle = "#080b12";
+    ctx.fillStyle = "#f8fafc";
     ctx.fillRect(0, 0, c.width, c.height);
     setHasSig(false);
   };
@@ -122,12 +122,12 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#818cf8", marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5", marginBottom: 12 }}>
           Loan Out — {item.label}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Borrower Name *</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Borrower Name *</label>
             <input
               placeholder="Name"
               value={form.borrowerName}
@@ -135,7 +135,7 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Borrower ID / Contact</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Borrower ID / Contact</label>
             <input
               placeholder="Staff ID / phone"
               value={form.borrowerId}
@@ -143,7 +143,7 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Issued By</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Issued By</label>
             <input
               placeholder="Your name"
               value={form.issuedBy}
@@ -151,7 +151,7 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Expected Return</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Expected Return</label>
             <input
               type="date"
               value={form.expectedReturn}
@@ -159,15 +159,15 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
             />
           </div>
           <div>
-            <label style={{ fontSize: 10, color: "#4b5563", display: "block", marginBottom: 3 }}>Notes</label>
+            <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Notes</label>
             <textarea rows={2} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
           </div>
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-              <label style={{ fontSize: 10, color: "#4b5563" }}>Borrower Signature</label>
+              <label style={{ fontSize: 10, color: "#64748b" }}>Borrower Signature</label>
               <button
                 onClick={clearSig}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563", fontSize: 10 }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: 10 }}
               >
                 Clear
               </button>
@@ -177,7 +177,7 @@ export default function LoanOutModal({ item, onSubmit, onClose }: LoanOutModalPr
               width={440}
               height={100}
               style={{
-                border: "1px solid #2d3748",
+                border: "1px solid #cbd5e1",
                 borderRadius: 5,
                 width: "100%",
                 height: 90,

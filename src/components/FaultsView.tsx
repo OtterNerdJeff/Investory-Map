@@ -46,7 +46,7 @@ export default function FaultsView({ items, onSelectItem, onUpdateFault, setLigh
             key={s}
             className="btn"
             onClick={() => setSf(s)}
-            style={sf === s ? { background: "#1a1d2e", borderColor: "#6366f1", color: "#a5b4fc" } : {}}
+            style={sf === s ? { background: "#ede9fe", borderColor: "#6366f1", color: "#4338ca" } : {}}
           >
             {s}
           </button>
@@ -62,9 +62,9 @@ export default function FaultsView({ items, onSelectItem, onUpdateFault, setLigh
           ))}
         </select>
       </div>
-      <div style={{ fontSize: 10, color: "#374151", marginBottom: 6 }}>{filtered.length} faults</div>
+      <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 6 }}>{filtered.length} faults</div>
       {filtered.length === 0 && (
-        <div style={{ textAlign: "center", color: "#1e2432", padding: 40, fontSize: 13 }}>
+        <div style={{ textAlign: "center", color: "#94a3b8", padding: 40, fontSize: 13 }}>
           No faults matching filter
         </div>
       )}
@@ -74,7 +74,7 @@ export default function FaultsView({ items, onSelectItem, onUpdateFault, setLigh
           return (
             <div
               key={f.id}
-              style={{ background: "#0d1117", border: "1px solid #1e2432", borderRadius: 7, padding: "10px 12px" }}
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 7, padding: "10px 12px" }}
             >
               <div style={{ display: "flex", gap: 8, alignItems: "flex-start", flexWrap: "wrap" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -83,25 +83,25 @@ export default function FaultsView({ items, onSelectItem, onUpdateFault, setLigh
                       {f.severity}
                     </span>
                     <span
-                      style={{ fontSize: 12, color: "#818cf8", cursor: "pointer" }}
+                      style={{ fontSize: 12, color: "#4f46e5", cursor: "pointer" }}
                       onClick={() => onSelectItem(f.item)}
                     >
                       {f.item.label}
                     </span>
-                    <span style={{ fontSize: 10, color: "#374151" }}>@ {f.item.location}</span>
-                    <span style={{ fontSize: 10, color: "#1e2432", marginLeft: "auto" }}>
+                    <span style={{ fontSize: 10, color: "#94a3b8" }}>@ {f.item.location}</span>
+                    <span style={{ fontSize: 10, color: "#94a3b8", marginLeft: "auto" }}>
                       {fmtDate(f.date)}
                     </span>
                   </div>
                   <div style={{ fontSize: 12, fontWeight: 500, marginBottom: 3 }}>{f.faultType}</div>
                   {f.description && (
-                    <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 4 }}>{f.description}</div>
+                    <div style={{ fontSize: 11, color: "#475569", marginBottom: 4 }}>{f.description}</div>
                   )}
                   {f.reportedBy && (
-                    <div style={{ fontSize: 10, color: "#374151" }}>By: {f.reportedBy}</div>
+                    <div style={{ fontSize: 10, color: "#94a3b8" }}>By: {f.reportedBy}</div>
                   )}
                   {f.resolvedBy && (
-                    <div style={{ fontSize: 10, color: "#4ade80", marginTop: 2 }}>
+                    <div style={{ fontSize: 10, color: "#16a34a", marginTop: 2 }}>
                       Resolved by {f.resolvedBy}
                     </div>
                   )}
@@ -118,7 +118,7 @@ export default function FaultsView({ items, onSelectItem, onUpdateFault, setLigh
                             objectFit: "cover",
                             borderRadius: 4,
                             cursor: "pointer",
-                            border: "1px solid #2d3748",
+                            border: "1px solid #cbd5e1",
                           }}
                           onClick={() => setLightbox(p)}
                         />

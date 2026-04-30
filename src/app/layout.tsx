@@ -19,7 +19,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body style={{ margin: 0, background: "#080b12" }}>
+      <body style={{ margin: 0, background: "#f8fafc" }}>
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
