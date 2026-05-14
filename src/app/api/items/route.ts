@@ -24,7 +24,11 @@ export async function GET(req: NextRequest) {
       orderBy: { label: "asc" },
     });
 
-    return NextResponse.json(items);
+    const mapped = items.map((item) => {
+      const { locationName, ...rest } = item as Record<string, unknown>;
+      return { ...rest, location: locationName };
+    });
+    return NextResponse.json(mapped);
   } catch (e: unknown) {
     return handleApiError(e);
   }
@@ -61,7 +65,7 @@ export async function POST(req: NextRequest) {
         brand: input.brand ?? null,
         model: input.model ?? null,
         serial: input.serial ?? null,
-        locationName: input.locationName,
+        locationName: input.locationName ?? input.location ?? "Spare",
         cost:
           input.cost !== undefined && input.cost !== null && input.cost !== ""
             ? typeof input.cost === "number"
@@ -78,7 +82,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(item, { status: 201 });
+    const { locationName, ...rest } = item as unknown as Record<string, unknown>;
+    return NextResponse.json({ ...rest, location: locationName }, { status: 201 });
   } catch (e: unknown) {
     return handleApiError(e);
   }

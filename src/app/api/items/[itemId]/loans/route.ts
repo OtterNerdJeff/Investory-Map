@@ -60,7 +60,8 @@ export async function POST(req: NextRequest, { params }: Params) {
         return { item: updated, loanEntry: entry };
       });
 
-      return NextResponse.json(result, { status: 201 });
+      const { locationName: ln, ...loanItemRest } = result.item as unknown as Record<string, unknown>;
+      return NextResponse.json({ item: { ...loanItemRest, location: ln }, loanEntry: result.loanEntry }, { status: 201 });
     }
 
     // action === "return"
@@ -99,7 +100,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       return { item: updated, loanEntry: closedLoan };
     });
 
-    return NextResponse.json(result);
+    const { locationName: rln, ...retItemRest } = result.item as unknown as Record<string, unknown>;
+    return NextResponse.json({ item: { ...retItemRest, location: rln }, loanEntry: result.loanEntry });
   } catch (e: unknown) {
     return handleApiError(e);
   }

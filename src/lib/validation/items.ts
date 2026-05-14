@@ -21,6 +21,7 @@ export const ItemCreateSchema = z.object({
   model: z.string().optional().nullable(),
   serial: z.string().optional().nullable(),
   locationName: z.string().min(1).default("Spare"),
+  location: z.string().min(1).optional(),
   cost: z.union([z.string(), z.number()]).optional().nullable(),
   warrantyEnd: z.string().optional().nullable(),
   status: CreateStatusEnum.default("Operational"),

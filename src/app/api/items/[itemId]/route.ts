@@ -31,7 +31,8 @@ export async function GET(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    return NextResponse.json(item);
+    const { locationName, ...rest } = item as unknown as Record<string, unknown>;
+    return NextResponse.json({ ...rest, location: locationName });
   } catch (e: unknown) {
     return handleApiError(e);
   }
@@ -72,7 +73,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
     if (input.brand !== undefined) data.brand = input.brand ?? null;
     if (input.model !== undefined) data.model = input.model ?? null;
     if (input.serial !== undefined) data.serial = input.serial ?? null;
-    if (input.locationName !== undefined) data.locationName = input.locationName;
+    const resolvedLocation = input.locationName ?? input.location;
+    if (resolvedLocation !== undefined) data.locationName = resolvedLocation;
     if (input.status !== undefined) data.status = input.status;
     if (input.statusNote !== undefined) data.statusNote = input.statusNote ?? null;
     if (input.loanable !== undefined) data.loanable = input.loanable;
@@ -122,7 +124,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
       },
     });
 
-    return NextResponse.json(item);
+    const { locationName: loc, ...itemRest } = item as unknown as Record<string, unknown>;
+    return NextResponse.json({ ...itemRest, location: loc });
   } catch (e: unknown) {
     return handleApiError(e);
   }

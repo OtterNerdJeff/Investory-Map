@@ -27,7 +27,11 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(faults);
+    const mapped = faults.map((f) => ({
+      ...f,
+      item: { ...f.item, location: f.item.locationName },
+    }));
+    return NextResponse.json(mapped);
   } catch (e: unknown) {
     return handleApiError(e);
   }

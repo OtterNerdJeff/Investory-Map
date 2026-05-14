@@ -52,7 +52,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       return { updated, logEntry };
     });
 
-    return NextResponse.json({ item: updated, logEntry });
+    const { locationName, ...itemRest } = updated as unknown as Record<string, unknown>;
+    return NextResponse.json({ item: { ...itemRest, location: locationName }, logEntry });
   } catch (e: unknown) {
     return handleApiError(e);
   }
