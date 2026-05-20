@@ -25,8 +25,15 @@ export async function GET(req: NextRequest) {
     });
 
     const mapped = items.map((item) => {
-      const { locationName, ...rest } = item as Record<string, unknown>;
-      return { ...rest, location: locationName };
+      const { locationName, faults, repairs, loanHistory, moveLog, ...rest } = item as Record<string, unknown>;
+      return {
+        ...rest,
+        location: locationName,
+        faults: (faults as Array<Record<string, unknown>>)?.map(f => ({ ...f, date: f.createdAt })),
+        repairs: (repairs as Array<Record<string, unknown>>)?.map(r => ({ ...r, loggedDate: r.createdAt, costRepair: r.cost })),
+        loanHistory,
+        moveLog: (moveLog as Array<Record<string, unknown>>)?.map(m => ({ ...m, from: m.fromLoc, to: m.toLoc, date: m.createdAt })),
+      };
     });
     return NextResponse.json(mapped);
   } catch (e: unknown) {

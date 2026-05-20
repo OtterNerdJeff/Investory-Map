@@ -18,7 +18,15 @@ export async function GET(req: NextRequest) {
       take: 500,
     });
 
-    return NextResponse.json(log);
+    return NextResponse.json(log.map(l => ({
+      id: l.id,
+      itemLabel: l.itemLabel,
+      from: l.fromLoc,
+      to: l.toLoc,
+      reason: l.reason ?? "",
+      movedBy: l.movedBy ?? undefined,
+      date: l.createdAt,
+    })));
   } catch (e: unknown) {
     return handleApiError(e);
   }

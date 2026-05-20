@@ -31,8 +31,15 @@ export async function GET(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { locationName, ...rest } = item as unknown as Record<string, unknown>;
-    return NextResponse.json({ ...rest, location: locationName });
+    const { locationName, faults, repairs, loanHistory, moveLog, ...rest } = item as unknown as Record<string, unknown>;
+    return NextResponse.json({
+      ...rest,
+      location: locationName,
+      faults: (faults as Array<Record<string, unknown>>)?.map(f => ({ ...f, date: f.createdAt })),
+      repairs: (repairs as Array<Record<string, unknown>>)?.map(r => ({ ...r, loggedDate: r.createdAt, costRepair: r.cost })),
+      loanHistory,
+      moveLog: (moveLog as Array<Record<string, unknown>>)?.map(m => ({ ...m, from: m.fromLoc, to: m.toLoc, date: m.createdAt })),
+    });
   } catch (e: unknown) {
     return handleApiError(e);
   }
