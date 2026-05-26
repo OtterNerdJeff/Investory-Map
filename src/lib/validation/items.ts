@@ -13,26 +13,35 @@ const UpdateStatusEnum = z.enum(
   STATUS_ENUM_FOR_VALIDATION as unknown as [string, ...string[]]
 );
 
-export const ItemCreateSchema = z.object({
+// Base schema without defaults, so that calling .partial() on it does not
+// inadvertently set default values during updates.
+const ItemBaseSchema = z.object({
   label: z.string().min(1, "label is required"),
   assetCode: z.string().optional().nullable(),
-  type: z.string().min(1).default("Projector"),
+  type: z.string().min(1),
   brand: z.string().optional().nullable(),
   model: z.string().optional().nullable(),
   serial: z.string().optional().nullable(),
-  locationName: z.string().min(1).default("Spare"),
+  locationName: z.string().min(1),
   location: z.string().min(1).optional(),
   cost: z.union([z.string(), z.number()]).optional().nullable(),
   warrantyEnd: z.string().optional().nullable(),
-  status: CreateStatusEnum.default("Operational"),
+  status: CreateStatusEnum,
   statusNote: z.string().optional().nullable(),
-  loanable: z.boolean().default(false),
+  loanable: z.boolean(),
   remark: z.string().max(300).optional().nullable(),
   comment: z.string().max(300).optional().nullable(),
   sheet: z.string().optional().nullable(),
 });
 
-export const ItemUpdateSchema = ItemCreateSchema.partial()
+export const ItemCreateSchema = ItemBaseSchema.extend({
+  type: z.string().min(1).default("Projector"),
+  locationName: z.string().min(1).default("Spare"),
+  status: CreateStatusEnum.default("Operational"),
+  loanable: z.boolean().default(false),
+});
+
+export const ItemUpdateSchema = ItemBaseSchema.partial()
   .extend({
     status: UpdateStatusEnum.optional(),
     isLoaned: z.boolean().optional(),
