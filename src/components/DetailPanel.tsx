@@ -32,9 +32,9 @@ interface RepairEntry {
   technician?: string;
   startDate?: string;
   completeDate?: string;
-  costRepair?: string;
+  cost?: number | null;
   notes?: string;
-  loggedDate: string;
+  createdAt: string;
 }
 
 interface MoveEntry {
@@ -63,7 +63,7 @@ interface DetailPanelProps {
   onClose: () => void;
   onUpdate: (patch: Record<string, unknown>) => void;
   onDelete: () => void;
-  onAddRepair: (repair: Omit<RepairEntry, "id" | "loggedDate">) => void;
+  onAddRepair: (repair: Record<string, unknown>) => void;
   onReportFault: () => void;
   onUpdateFault: (faultId: string, patch: Record<string, unknown>) => void;
   onMove: () => void;
@@ -71,6 +71,7 @@ interface DetailPanelProps {
   onReturn: () => void;
   setLightbox: (src: string) => void;
   allLocations: string[];
+  itemTypes: string[];
 }
 
 // --- RemarkCommentDisplay (named export) ----------------------------------
@@ -184,6 +185,7 @@ export default function DetailPanel({
   onReturn,
   setLightbox,
   allLocations,
+  itemTypes,
 }: DetailPanelProps) {
   const [pos, setPos] = useState(() => {
     if (typeof window === "undefined") return { x: 10, y: 10 };
@@ -250,7 +252,7 @@ export default function DetailPanel({
   const [repairForm, setRepairForm] = useState({
     description: "",
     technician: "",
-    costRepair: "",
+    cost: "",
     startDate: "",
     completeDate: "",
     notes: "",
@@ -265,7 +267,7 @@ export default function DetailPanel({
         left: pos.x,
         top: pos.y,
         width: "min(360px, calc(100vw - 20px))",
-        maxHeight: "82vh",
+        maxHeight: "min(82vh, calc(100dvh - 20px))",
         background: "rgba(255,255,255,0.97)",
         border: `1px solid ${s.border}`,
         borderRadius: 12,
@@ -359,20 +361,7 @@ export default function DetailPanel({
             </span>
           )}
         </div>
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-          <button
-            className="btn no-drag"
-            style={{
-              fontSize: 9,
-              padding: "3px 8px",
-              background: "#f3e8ff",
-              borderColor: "#7c3aed",
-              color: "#6d28d9",
-            }}
-            onClick={onReportFault}
-          >
-            ⚠ Fault
-          </button>
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>
           <button className="btn no-drag" style={{ fontSize: 9, padding: "3px 8px" }} onClick={onMove}>
             ⇄ Move
           </button>
@@ -406,6 +395,14 @@ export default function DetailPanel({
               ↩ Return
             </button>
           )}
+          <div style={{ flex: 1 }} />
+          <button
+            className="btn no-drag"
+            style={{ fontSize: 9, padding: "3px 8px" }}
+            onClick={onReportFault}
+          >
+            ⚠ Fault
+          </button>
         </div>
       </div>
 
@@ -450,7 +447,7 @@ export default function DetailPanel({
       {/* Content */}
       <div
         className="no-drag"
-        style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}
+        style={{ flex: 1, overflowY: "auto", padding: "12px 14px", minHeight: 0 }}
       >
         {/* DETAILS TAB */}
         {detailTab === "details" &&
@@ -507,25 +504,7 @@ export default function DetailPanel({
                   value={(ed.type as string) || ""}
                   onChange={e => setEd(d => ({ ...d, type: e.target.value }))}
                 >
-                  {[
-                    "Projector",
-                    "Visualiser",
-                    "Patch Panel",
-                    "MIC",
-                    "iPad",
-                    "iPad Cart",
-                    "Portable HD",
-                    "DSLR",
-                    "Monitor",
-                    "PRINTER",
-                    "Mobile Charging Cart",
-                    "S-Max",
-                    "Old iPAD",
-                    "Owned iPAD",
-                    "DESKTOP",
-                    "Camera",
-                    "IPAD",
-                  ].map(t => (
+                  {itemTypes.map(t => (
                     <option key={t}>{t}</option>
                   ))}
                 </select>
@@ -857,8 +836,8 @@ export default function DetailPanel({
                 <input
                   placeholder="Cost ($)"
                   type="number"
-                  value={repairForm.costRepair}
-                  onChange={e => setRepairForm(f => ({ ...f, costRepair: e.target.value }))}
+                  value={repairForm.cost}
+                  onChange={e => setRepairForm(f => ({ ...f, cost: e.target.value }))}
                 />
                 <textarea
                   placeholder="Notes"
@@ -874,7 +853,7 @@ export default function DetailPanel({
                     setRepairForm({
                       description: "",
                       technician: "",
-                      costRepair: "",
+                      cost: "",
                       startDate: "",
                       completeDate: "",
                       notes: "",
@@ -905,7 +884,7 @@ export default function DetailPanel({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                   <span style={{ fontSize: 11, fontWeight: 500 }}>{r.description}</span>
-                  <span style={{ fontSize: 9, color: "#cbd5e1" }}>{fmtDate(r.loggedDate)}</span>
+                  <span style={{ fontSize: 9, color: "#cbd5e1" }}>{fmtDate(r.createdAt)}</span>
                 </div>
                 {r.technician && (
                   <div style={{ fontSize: 10, color: "#64748b" }}>Tech: {r.technician}</div>
@@ -916,8 +895,8 @@ export default function DetailPanel({
                     {r.completeDate ? ` → ${fmtDate(r.completeDate)}` : ""}
                   </div>
                 )}
-                {r.costRepair && (
-                  <div style={{ fontSize: 10, color: "#16a34a" }}>Cost: ${r.costRepair}</div>
+                {r.cost != null && (
+                  <div style={{ fontSize: 10, color: "#16a34a" }}>Cost: ${r.cost}</div>
                 )}
                 {r.notes && (
                   <div style={{ fontSize: 10, color: "#475569", marginTop: 3 }}>{r.notes}</div>

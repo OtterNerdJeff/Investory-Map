@@ -22,6 +22,7 @@ import BulkMoveModal from "@/components/modals/BulkMoveModal";
 import SettingsModal from "@/components/modals/SettingsModal";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { api } from "@/lib/api-client";
+import { DEFAULT_ITEM_TYPES } from "@/lib/constants";
 import type { Item } from "@/components/ItemChip";
 
 export default function DashboardPage() {
@@ -44,17 +45,20 @@ export default function DashboardPage() {
   const [dragItem, setDragItem] = useState<Item | null>(null);
   const [dragRoom, setDragRoom] = useState<string | null>(null);
   const [dragOverRoom, setDragOverRoom] = useState<string | null>(null);
+  const [itemTypes, setItemTypes] = useState<string[]>(DEFAULT_ITEM_TYPES);
 
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [fetchedItems, fetchedSections, fetchedLog] = await Promise.all([
+        const [fetchedItems, fetchedSections, fetchedLog, fetchedTypes] = await Promise.all([
           api.items.list(),
           api.sections.list(),
           api.moveLog.list(),
+          api.types.list(),
         ]);
         setItems(fetchedItems);
+        setItemTypes(fetchedTypes);
         // Sections API returns array of { id, name, rooms: [...] } — reshape to Record<name, roomNames[]>
         const sectionMap: Record<string, string[]> = {};
         if (Array.isArray(fetchedSections)) {
@@ -475,6 +479,7 @@ export default function DashboardPage() {
             onReturn={() => setModal({ type: "return", item: selectedItem })}
             setLightbox={setLightbox}
             allLocations={Object.values(sections).flat()}
+            itemTypes={itemTypes}
           />
         </div>
       )}
@@ -553,6 +558,16 @@ export default function DashboardPage() {
           onRenameRoom={handleRenameRoom}
           onDeleteRoom={handleDeleteRoom}
           onMoveRoom={handleMoveRoom}
+          itemTypes={itemTypes}
+          onUpdateTypes={async (types: string[]) => {
+            await api.types.update(types);
+            setItemTypes(types);
+          }}
+          onResetAllData={async () => {
+            await api.reset();
+            await refreshItems();
+            await refreshSections();
+          }}
           onClose={() => setModal(null)}
         />
       )}

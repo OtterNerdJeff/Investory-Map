@@ -74,11 +74,17 @@ export default function ImportModal({ onSuccess, onClose }: ImportModalProps) {
     r.readAsText(f);
   };
 
+  const [result, setResult] = useState<{ imported: number; skipped: number } | null>(null);
+
   const handleImport = async () => {
     setImporting(true);
     try {
-      await api.import.csv(preview);
-      onSuccess();
+      const res = await api.import.csv(preview);
+      if (res.skipped > 0) {
+        setResult(res);
+      } else {
+        onSuccess();
+      }
     } catch {
       setErr("Import failed. Please try again.");
     } finally {
@@ -97,7 +103,20 @@ export default function ImportModal({ onSuccess, onClose }: ImportModalProps) {
         </div>
         <input type="file" accept=".csv" onChange={handle} style={{ marginBottom: 10 }} />
         {err && <div style={{ color: "#dc2626", fontSize: 11, marginBottom: 8 }}>{err}</div>}
-        {preview.length > 0 && (
+        {result && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, color: "#16a34a", marginBottom: 4 }}>
+              {result.imported} item{result.imported !== 1 ? "s" : ""} imported
+            </div>
+            <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6 }}>
+              {result.skipped} duplicate{result.skipped !== 1 ? "s" : ""} skipped (matching serial numbers)
+            </div>
+            <button className="btn btn-primary" style={{ width: "100%" }} onClick={onSuccess}>
+              Done
+            </button>
+          </div>
+        )}
+        {!result && preview.length > 0 && (
           <div>
             <div style={{ fontSize: 11, color: "#16a34a", marginBottom: 6 }}>{preview.length} items ready</div>
             <div style={{ maxHeight: 150, overflow: "auto", marginBottom: 10 }}>

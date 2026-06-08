@@ -63,6 +63,26 @@ export const STATUS_COLORS: Record<
   },
 };
 
+export const DEFAULT_ITEM_TYPES = [
+  "Projector",
+  "Visualiser",
+  "Patch Panel",
+  "MIC",
+  "iPad",
+  "iPad Cart",
+  "Portable HD",
+  "DSLR",
+  "Monitor",
+  "PRINTER",
+  "Mobile Charging Cart",
+  "S-Max",
+  "Old iPAD",
+  "Owned iPAD",
+  "DESKTOP",
+  "Camera",
+  "IPAD",
+];
+
 export const TYPE_ICON: Record<string, string> = {
   Projector: "📽",
   Visualiser: "📷",

@@ -35,6 +35,7 @@ describe("POST /api/import", () => {
 
   it("returns 201 with imported count on success", async () => {
     (requireSession as ReturnType<typeof vi.fn>).mockResolvedValue(adminUser);
+    (prisma.item.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (prisma.item.createMany as ReturnType<typeof vi.fn>).mockResolvedValue({
       count: 3,
     });
@@ -55,7 +56,7 @@ describe("POST /api/import", () => {
     const data = await res.json();
 
     expect(res.status).toBe(201);
-    expect(data).toEqual({ imported: 3 });
+    expect(data).toEqual({ imported: 3, skipped: 0 });
     expect(prisma.item.createMany).toHaveBeenCalledOnce();
   });
 

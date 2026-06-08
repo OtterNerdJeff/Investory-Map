@@ -113,7 +113,7 @@ export const api = {
 
   import: {
     csv: (items: unknown[]) =>
-      apiFetch<{ imported: number }>("/api/import", {
+      apiFetch<{ imported: number; skipped: number }>("/api/import", {
         method: "POST",
         body: JSON.stringify({ items }),
       }),
@@ -129,6 +129,18 @@ export const api = {
       const data = await res.json() as { url: string };
       return data.url;
     },
+  },
+
+  reset: () =>
+    apiFetch<{ success: boolean }>("/api/reset", { method: "POST" }),
+
+  types: {
+    list: () => apiFetch<string[]>("/api/types"),
+    update: (types: string[]) =>
+      apiFetch<string[]>("/api/types", {
+        method: "PUT",
+        body: JSON.stringify({ types }),
+      }),
   },
 
   superAdmin: {

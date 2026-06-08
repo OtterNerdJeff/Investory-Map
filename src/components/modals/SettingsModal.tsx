@@ -17,6 +17,7 @@ export interface SectionData {
 
 interface SettingsModalProps {
   sectionsData: SectionData[];
+  itemTypes: string[];
   onAddSection: (name: string) => void;
   onRenameSection: (sectionId: string, name: string, currentName: string) => void;
   onDeleteSection: (sectionId: string, sectionName: string) => void;
@@ -24,6 +25,8 @@ interface SettingsModalProps {
   onRenameRoom: (sectionId: string, roomId: string, name: string) => void;
   onDeleteRoom: (sectionId: string, roomId: string, redirectTo: string) => void;
   onMoveRoom: (fromSectionId: string, toSectionId: string, roomId: string) => void;
+  onUpdateTypes: (types: string[]) => Promise<void>;
+  onResetAllData: () => Promise<void>;
   onClose: () => void;
 }
 
@@ -36,14 +39,22 @@ export default function SettingsModal({
   onRenameRoom,
   onDeleteRoom,
   onMoveRoom,
+  itemTypes,
+  onUpdateTypes,
+  onResetAllData,
   onClose,
 }: SettingsModalProps) {
+  const [settingsTab, setSettingsTab] = useState<"sections" | "types">("sections");
   const [selSecId, setSelSecId] = useState<string>(sectionsData[0]?.id ?? "");
   const [newSec, setNewSec] = useState("");
   const [newRoom, setNewRoom] = useState("");
   const [editSecName, setEditSecName] = useState("");
   const [movingRoom, setMovingRoom] = useState<RoomData | null>(null);
   const [moveRoomTarget, setMoveRoomTarget] = useState("");
+  const [editTypes, setEditTypes] = useState<string[]>(itemTypes);
+  const [newType, setNewType] = useState("");
+  const [resetConfirm, setResetConfirm] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   const selectedSection = sectionsData.find((s) => s.id === selSecId) ?? null;
   const otherSections = sectionsData.filter((s) => s.id !== selSecId);
@@ -60,9 +71,9 @@ export default function SettingsModal({
   return (
     <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" style={{ width: "min(580px,100%)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
           <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, color: "#4f46e5" }}>
-            Manage Sections & Rooms
+            Settings
           </div>
           <button
             onClick={onClose}
@@ -71,6 +82,33 @@ export default function SettingsModal({
             ✕
           </button>
         </div>
+        <div style={{ display: "flex", gap: 4, marginBottom: 12, borderBottom: "1px solid #e2e8f0", paddingBottom: 6 }}>
+          {(
+            [
+              ["sections", "Sections & Rooms"],
+              ["types", "Item Types"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setSettingsTab(key)}
+              style={{
+                padding: "4px 12px",
+                fontSize: 11,
+                borderRadius: "4px 4px 0 0",
+                background: settingsTab === key ? "#ede9fe" : "none",
+                color: settingsTab === key ? "#4338ca" : "#64748b",
+                border: settingsTab === key ? "1px solid #cbd5e1" : "1px solid transparent",
+                borderBottom: "none",
+                cursor: "pointer",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {settingsTab === "sections" && (
         <div style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: 12, minHeight: 300 }}>
           <div>
             <div style={{ fontSize: 10, color: "#64748b", marginBottom: 6 }}>SECTIONS</div>
@@ -302,6 +340,127 @@ export default function SettingsModal({
                 </div>
               </>
             )}
+          </div>
+        </div>
+        )}
+
+        {settingsTab === "types" && (
+          <div style={{ minHeight: 300 }}>
+            <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8 }}>
+              Manage the list of equipment types that appear in item details. Rename inline, or add / remove types.
+            </div>
+            <div
+              style={{
+                maxHeight: 280,
+                overflow: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                marginBottom: 8,
+              }}
+            >
+              {editTypes.map((t, i) => (
+                <div key={i} style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                  <input
+                    value={t}
+                    onChange={(e) => {
+                      const next = [...editTypes];
+                      next[i] = e.target.value;
+                      setEditTypes(next);
+                    }}
+                    style={{ fontSize: 10, flex: 1 }}
+                  />
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => {
+                      setEditTypes(editTypes.filter((_, j) => j !== i));
+                    }}
+                    style={{ padding: "3px 7px", fontSize: 10, flexShrink: 0 }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+              <input
+                placeholder="New type name..."
+                value={newType}
+                onChange={(e) => setNewType(e.target.value)}
+                style={{ fontSize: 10, flex: 1 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newType.trim()) {
+                    setEditTypes([...editTypes, newType.trim()]);
+                    setNewType("");
+                  }
+                }}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  if (newType.trim()) {
+                    setEditTypes([...editTypes, newType.trim()]);
+                    setNewType("");
+                  }
+                }}
+                style={{ padding: "4px 8px" }}
+              >
+                Add
+              </button>
+            </div>
+            <button
+              className="btn btn-primary"
+              style={{ width: "100%", marginBottom: 6 }}
+              onClick={async () => {
+                const cleaned = editTypes.map((t) => t.trim()).filter(Boolean);
+                await onUpdateTypes(cleaned);
+                setEditTypes(cleaned);
+              }}
+            >
+              Save Types
+            </button>
+          </div>
+        )}
+
+        <div
+          style={{
+            marginTop: 16,
+            padding: 12,
+            border: "1px solid #fca5a5",
+            borderRadius: 6,
+            background: "#fef2f2",
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#dc2626", marginBottom: 6 }}>
+            Clear All Data
+          </div>
+          <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8 }}>
+            This will permanently delete all items, sections, rooms, faults, loans, and move logs. User accounts will be kept. This cannot be undone.
+          </div>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input
+              placeholder='Type "RESET" to confirm'
+              value={resetConfirm}
+              onChange={(e) => setResetConfirm(e.target.value)}
+              style={{ fontSize: 10, flex: 1 }}
+            />
+            <button
+              className="btn btn-danger"
+              disabled={resetConfirm !== "RESET" || resetting}
+              onClick={async () => {
+                setResetting(true);
+                try {
+                  await onResetAllData();
+                  onClose();
+                } finally {
+                  setResetting(false);
+                  setResetConfirm("");
+                }
+              }}
+              style={{ padding: "4px 10px", fontSize: 10, opacity: resetConfirm !== "RESET" ? 0.4 : 1 }}
+            >
+              {resetting ? "Clearing..." : "Clear All Data"}
+            </button>
           </div>
         </div>
       </div>
