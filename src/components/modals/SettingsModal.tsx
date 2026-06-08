@@ -18,6 +18,7 @@ export interface SectionData {
 interface SettingsModalProps {
   sectionsData: SectionData[];
   itemTypes: string[];
+  typeIcons: Record<string, string>;
   onAddSection: (name: string) => void;
   onRenameSection: (sectionId: string, name: string, currentName: string) => void;
   onDeleteSection: (sectionId: string, sectionName: string) => void;
@@ -25,7 +26,7 @@ interface SettingsModalProps {
   onRenameRoom: (sectionId: string, roomId: string, name: string) => void;
   onDeleteRoom: (sectionId: string, roomId: string, redirectTo: string) => void;
   onMoveRoom: (fromSectionId: string, toSectionId: string, roomId: string) => void;
-  onUpdateTypes: (types: string[]) => Promise<void>;
+  onUpdateTypes: (types: string[], icons: Record<string, string>) => Promise<void>;
   onResetAllData: () => Promise<void>;
   onClose: () => void;
 }
@@ -40,6 +41,7 @@ export default function SettingsModal({
   onDeleteRoom,
   onMoveRoom,
   itemTypes,
+  typeIcons,
   onUpdateTypes,
   onResetAllData,
   onClose,
@@ -52,6 +54,7 @@ export default function SettingsModal({
   const [movingRoom, setMovingRoom] = useState<RoomData | null>(null);
   const [moveRoomTarget, setMoveRoomTarget] = useState("");
   const [editTypes, setEditTypes] = useState<string[]>(itemTypes);
+  const [editIcons, setEditIcons] = useState<Record<string, string>>(typeIcons);
   const [newType, setNewType] = useState("");
   const [resetConfirm, setResetConfirm] = useState("");
   const [resetting, setResetting] = useState(false);
@@ -347,7 +350,11 @@ export default function SettingsModal({
         {settingsTab === "types" && (
           <div style={{ minHeight: 300 }}>
             <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8 }}>
-              Manage the list of equipment types that appear in item details. Rename inline, or add / remove types.
+              Manage equipment types and their icons. Click an icon to change it (paste any emoji).
+            </div>
+            <div style={{ display: "flex", gap: 5, marginBottom: 6, fontSize: 9, color: "#94a3b8" }}>
+              <span style={{ width: 36, textAlign: "center" }}>Icon</span>
+              <span style={{ flex: 1 }}>Type Name</span>
             </div>
             <div
               style={{
@@ -362,18 +369,38 @@ export default function SettingsModal({
               {editTypes.map((t, i) => (
                 <div key={i} style={{ display: "flex", gap: 5, alignItems: "center" }}>
                   <input
+                    value={editIcons[t] || "📦"}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const emoji = [...val].pop() || "📦";
+                      setEditIcons({ ...editIcons, [t]: emoji });
+                    }}
+                    style={{ fontSize: 18, width: 36, textAlign: "center", padding: "2px 0", flexShrink: 0 }}
+                  />
+                  <input
                     value={t}
                     onChange={(e) => {
+                      const oldName = editTypes[i];
                       const next = [...editTypes];
                       next[i] = e.target.value;
                       setEditTypes(next);
+                      if (editIcons[oldName]) {
+                        const newIcons = { ...editIcons };
+                        newIcons[e.target.value] = newIcons[oldName];
+                        if (e.target.value !== oldName) delete newIcons[oldName];
+                        setEditIcons(newIcons);
+                      }
                     }}
                     style={{ fontSize: 10, flex: 1 }}
                   />
                   <button
                     className="btn btn-danger"
                     onClick={() => {
+                      const removed = editTypes[i];
                       setEditTypes(editTypes.filter((_, j) => j !== i));
+                      const newIcons = { ...editIcons };
+                      delete newIcons[removed];
+                      setEditIcons(newIcons);
                     }}
                     style={{ padding: "3px 7px", fontSize: 10, flexShrink: 0 }}
                   >
@@ -413,8 +440,13 @@ export default function SettingsModal({
               style={{ width: "100%", marginBottom: 6 }}
               onClick={async () => {
                 const cleaned = editTypes.map((t) => t.trim()).filter(Boolean);
-                await onUpdateTypes(cleaned);
+                const cleanedIcons: Record<string, string> = {};
+                for (const t of cleaned) {
+                  if (editIcons[t]) cleanedIcons[t] = editIcons[t];
+                }
+                await onUpdateTypes(cleaned, cleanedIcons);
                 setEditTypes(cleaned);
+                setEditIcons(cleanedIcons);
               }}
             >
               Save Types

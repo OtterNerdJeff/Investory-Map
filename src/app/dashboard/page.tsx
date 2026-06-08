@@ -46,19 +46,21 @@ export default function DashboardPage() {
   const [dragRoom, setDragRoom] = useState<string | null>(null);
   const [dragOverRoom, setDragOverRoom] = useState<string | null>(null);
   const [itemTypes, setItemTypes] = useState<string[]>(DEFAULT_ITEM_TYPES);
+  const [typeIcons, setTypeIcons] = useState<Record<string, string>>({});
 
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [fetchedItems, fetchedSections, fetchedLog, fetchedTypes] = await Promise.all([
+        const [fetchedItems, fetchedSections, fetchedLog, fetchedTypesData] = await Promise.all([
           api.items.list(),
           api.sections.list(),
           api.moveLog.list(),
           api.types.list(),
         ]);
         setItems(fetchedItems);
-        setItemTypes(fetchedTypes);
+        setItemTypes(fetchedTypesData.types);
+        setTypeIcons(fetchedTypesData.icons);
         // Sections API returns array of { id, name, rooms: [...] } — reshape to Record<name, roomNames[]>
         const sectionMap: Record<string, string[]> = {};
         if (Array.isArray(fetchedSections)) {
@@ -430,6 +432,7 @@ export default function DashboardPage() {
             dragRoom={dragRoom}
             selectedItems={selectedItems}
             onToggleSelect={toggleSelectItem}
+            typeIcons={typeIcons}
           />
         )}
         {tab === "list" && (
@@ -442,6 +445,7 @@ export default function DashboardPage() {
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
             onSelectItem={openItem}
+            typeIcons={typeIcons}
           />
         )}
         {tab === "faults" && (
@@ -480,6 +484,7 @@ export default function DashboardPage() {
             setLightbox={setLightbox}
             allLocations={Object.values(sections).flat()}
             itemTypes={itemTypes}
+            typeIcons={typeIcons}
           />
         </div>
       )}
@@ -528,6 +533,8 @@ export default function DashboardPage() {
         <AddItemModal
           location={(modal.location as string) ?? ""}
           onAdd={handleAddItem}
+          itemTypes={itemTypes}
+          typeIcons={typeIcons}
           onClose={() => setModal(null)}
         />
       )}
@@ -559,9 +566,11 @@ export default function DashboardPage() {
           onDeleteRoom={handleDeleteRoom}
           onMoveRoom={handleMoveRoom}
           itemTypes={itemTypes}
-          onUpdateTypes={async (types: string[]) => {
-            await api.types.update(types);
+          typeIcons={typeIcons}
+          onUpdateTypes={async (types: string[], icons: Record<string, string>) => {
+            await api.types.update(types, icons);
             setItemTypes(types);
+            setTypeIcons(icons);
           }}
           onResetAllData={async () => {
             await api.reset();

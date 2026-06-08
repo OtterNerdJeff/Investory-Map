@@ -22,6 +22,7 @@ interface SectionsViewProps {
   dragRoom: string | null;
   selectedItems: Set<string>;
   onToggleSelect: (id: string, shiftHeld: boolean) => void;
+  typeIcons?: Record<string, string>;
 }
 
 export default function SectionsView({
@@ -43,6 +44,7 @@ export default function SectionsView({
   dragRoom,
   selectedItems,
   onToggleSelect,
+  typeIcons,
 }: SectionsViewProps) {
   const rooms = sections[activeSection] || [];
 
@@ -80,7 +82,9 @@ export default function SectionsView({
         }}
       >
         {rooms.map((room) => {
-          const roomItems = items.filter((i) => i.location === room);
+          const roomItems = items
+            .filter((i) => i.location === room)
+            .sort((a, b) => a.type.localeCompare(b.type) || a.label.localeCompare(b.label));
           const hasIssue = roomItems.some((i) => i.status === "Faulty");
           const hasMaint = roomItems.some((i) =>
             ["Under Maintenance"].includes(i.status)
@@ -228,6 +232,7 @@ export default function SectionsView({
                     onMove={() => onMoveItem(item)}
                     isSelected={selectedItems.has(item.id)}
                     onToggleSelect={onToggleSelect}
+                    typeIcons={typeIcons}
                   />
                 ))}
               </div>

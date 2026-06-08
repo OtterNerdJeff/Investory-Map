@@ -19,6 +19,7 @@ interface ListViewProps {
   filterStatus: string;
   setFilterStatus: (v: string) => void;
   onSelectItem: (item: Item) => void;
+  typeIcons?: Record<string, string>;
 }
 
 export default function ListView({
@@ -30,6 +31,7 @@ export default function ListView({
   filterStatus,
   setFilterStatus,
   onSelectItem,
+  typeIcons,
 }: ListViewProps) {
   const types = ["All", ...new Set(items.map((i) => i.type).filter(Boolean))];
   const filtered = items.filter((i) => {
@@ -148,7 +150,7 @@ export default function ListView({
                     )}
                   </td>
                   <td style={{ padding: "4px 7px", color: "#94a3b8", whiteSpace: "nowrap" }}>
-                    {getTypeIcon(item.type)} {item.type}
+                    <span style={{ fontSize: 16 }}>{typeIcons?.[item.type] || getTypeIcon(item.type)}</span> {item.type}
                   </td>
                   <td style={{ padding: "4px 7px" }}>{item.brand}</td>
                   <td style={{ padding: "4px 7px", color: "#64748b" }}>{item.model}</td>

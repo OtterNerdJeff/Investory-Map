@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { STATUS_LIST, TYPE_ICON } from "@/lib/constants";
+import { STATUS_LIST, TYPE_ICON, getTypeIcon } from "@/lib/constants";
 
 interface AddItemForm {
   label: string;
@@ -25,9 +25,11 @@ interface AddItemModalProps {
   location: string;
   onAdd: (form: Record<string, unknown>) => void;
   onClose: () => void;
+  itemTypes?: string[];
+  typeIcons?: Record<string, string>;
 }
 
-export default function AddItemModal({ location, onAdd, onClose }: AddItemModalProps) {
+export default function AddItemModal({ location, onAdd, onClose, itemTypes, typeIcons }: AddItemModalProps) {
   const [form, setForm] = useState<AddItemForm>({
     label: "",
     assetCode: "",
@@ -73,10 +75,8 @@ export default function AddItemModal({ location, onAdd, onClose }: AddItemModalP
           <div>
             <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 2 }}>Type</label>
             <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
-              {Object.keys(TYPE_ICON)
-                .filter((k) => k !== "default")
-                .map((t) => (
-                  <option key={t}>{t}</option>
+              {(itemTypes || Object.keys(TYPE_ICON).filter((k) => k !== "default")).map((t) => (
+                  <option key={t}>{typeIcons?.[t] || getTypeIcon(t)} {t}</option>
                 ))}
             </select>
           </div>

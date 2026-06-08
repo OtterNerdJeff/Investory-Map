@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
         brand: input.brand ?? null,
         model: input.model ?? null,
         serial: input.serial ?? null,
-        locationName: input.locationName ?? input.location ?? "Spare",
+        locationName: input.location || input.locationName,
         cost:
           input.cost !== undefined && input.cost !== null && input.cost !== ""
             ? typeof input.cost === "number"

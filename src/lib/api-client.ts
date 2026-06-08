@@ -135,11 +135,11 @@ export const api = {
     apiFetch<{ success: boolean }>("/api/reset", { method: "POST" }),
 
   types: {
-    list: () => apiFetch<string[]>("/api/types"),
-    update: (types: string[]) =>
-      apiFetch<string[]>("/api/types", {
+    list: () => apiFetch<{ types: string[]; icons: Record<string, string> }>("/api/types"),
+    update: (types: string[], icons: Record<string, string>) =>
+      apiFetch<{ types: string[]; icons: Record<string, string> }>("/api/types", {
         method: "PUT",
-        body: JSON.stringify({ types }),
+        body: JSON.stringify({ types, icons }),
       }),
   },
 

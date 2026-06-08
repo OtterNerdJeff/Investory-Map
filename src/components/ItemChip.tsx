@@ -30,6 +30,7 @@ interface ItemChipProps {
   onMove: () => void;
   isSelected: boolean;
   onToggleSelect: (id: string, shiftHeld: boolean) => void;
+  typeIcons?: Record<string, string>;
 }
 
 export default function ItemChip({
@@ -40,6 +41,7 @@ export default function ItemChip({
   onMove,
   isSelected,
   onToggleSelect,
+  typeIcons,
 }: ItemChipProps) {
   const s = getStatusColor(item.status);
   const openF = (item.faults || []).filter((f) => f.status !== "Resolved").length;
@@ -61,7 +63,7 @@ export default function ItemChip({
         outlineOffset: -1,
       }}
     >
-      <span style={{ fontSize: 10, flexShrink: 0 }}>{getTypeIcon(item.type)}</span>
+      <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{typeIcons?.[item.type] || getTypeIcon(item.type)}</span>
       <div
         style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
         onClick={(e) => onSelect(e)}

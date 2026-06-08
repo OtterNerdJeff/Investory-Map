@@ -72,6 +72,7 @@ interface DetailPanelProps {
   setLightbox: (src: string) => void;
   allLocations: string[];
   itemTypes: string[];
+  typeIcons?: Record<string, string>;
 }
 
 // --- RemarkCommentDisplay (named export) ----------------------------------
@@ -186,6 +187,7 @@ export default function DetailPanel({
   setLightbox,
   allLocations,
   itemTypes,
+  typeIcons,
 }: DetailPanelProps) {
   const [pos, setPos] = useState(() => {
     if (typeof window === "undefined") return { x: 10, y: 10 };
@@ -578,7 +580,7 @@ export default function DetailPanel({
           ) : (
             <div>
               <div style={{ fontSize: 11, color: "#64748b", marginBottom: 6 }}>
-                {getTypeIcon(item.type)} {item.type} · {item.brand} {item.model}
+                <span style={{ fontSize: 18 }}>{typeIcons?.[item.type] || getTypeIcon(item.type)}</span> {item.type} · {item.brand} {item.model}
               </div>
               <div style={{ display: "grid", gap: 3, marginBottom: 10 }}>
                 {(
