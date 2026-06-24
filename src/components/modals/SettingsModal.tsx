@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { CONDEMNED_SECTION } from "@/lib/constants";
 
 export interface RoomData {
@@ -58,6 +58,14 @@ export default function SettingsModal({
   const [newType, setNewType] = useState("");
   const [resetConfirm, setResetConfirm] = useState("");
   const [resetting, setResetting] = useState(false);
+  const [typesSaved, setTypesSaved] = useState(false);
+  const typesSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (typesSavedTimer.current) clearTimeout(typesSavedTimer.current);
+    };
+  }, []);
 
   const selectedSection = sectionsData.find((s) => s.id === selSecId) ?? null;
   const otherSections = sectionsData.filter((s) => s.id !== selSecId);
@@ -447,9 +455,12 @@ export default function SettingsModal({
                 await onUpdateTypes(cleaned, cleanedIcons);
                 setEditTypes(cleaned);
                 setEditIcons(cleanedIcons);
+                setTypesSaved(true);
+                if (typesSavedTimer.current) clearTimeout(typesSavedTimer.current);
+                typesSavedTimer.current = setTimeout(() => setTypesSaved(false), 2500);
               }}
             >
-              Save Types
+              {typesSaved ? "Saved!" : "Save Types"}
             </button>
           </div>
         )}
