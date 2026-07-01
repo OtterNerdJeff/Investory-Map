@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { FAULT_TYPES, SEV_COLORS } from "@/lib/constants";
+import { SEV_COLORS } from "@/lib/constants";
 import { api } from "@/lib/api-client";
 import type { Item } from "@/components/ItemChip";
 
@@ -15,13 +15,14 @@ interface FaultForm {
 
 interface FaultModalProps {
   item: Item;
+  faultTypes: string[];
   onSubmit: (form: FaultForm) => void;
   onClose: () => void;
 }
 
-export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps) {
+export default function FaultModal({ item, faultTypes, onSubmit, onClose }: FaultModalProps) {
   const [form, setForm] = useState<FaultForm>({
-    faultType: FAULT_TYPES[0],
+    faultType: faultTypes[0] || "",
     severity: "Medium",
     description: "",
     reportedBy: "",
@@ -53,7 +54,7 @@ export default function FaultModal({ item, onSubmit, onClose }: FaultModalProps)
           <div>
             <label style={{ fontSize: 10, color: "#64748b", display: "block", marginBottom: 3 }}>Fault Type</label>
             <select value={form.faultType} onChange={(e) => setForm((f) => ({ ...f, faultType: e.target.value }))}>
-              {FAULT_TYPES.map((t) => (
+              {faultTypes.map((t) => (
                 <option key={t}>{t}</option>
               ))}
             </select>

@@ -27,6 +27,8 @@ interface SettingsModalProps {
   onDeleteRoom: (sectionId: string, roomId: string, redirectTo: string) => void;
   onMoveRoom: (fromSectionId: string, toSectionId: string, roomId: string) => void;
   onUpdateTypes: (types: string[], icons: Record<string, string>) => Promise<void>;
+  faultTypes: string[];
+  onUpdateFaultTypes: (types: string[]) => Promise<void>;
   onResetAllData: () => Promise<void>;
   onClose: () => void;
 }
@@ -43,10 +45,12 @@ export default function SettingsModal({
   itemTypes,
   typeIcons,
   onUpdateTypes,
+  faultTypes,
+  onUpdateFaultTypes,
   onResetAllData,
   onClose,
 }: SettingsModalProps) {
-  const [settingsTab, setSettingsTab] = useState<"sections" | "types">("sections");
+  const [settingsTab, setSettingsTab] = useState<"sections" | "types" | "faults">("sections");
   const [selSecId, setSelSecId] = useState<string>(sectionsData[0]?.id ?? "");
   const [newSec, setNewSec] = useState("");
   const [newRoom, setNewRoom] = useState("");
@@ -59,11 +63,16 @@ export default function SettingsModal({
   const [resetConfirm, setResetConfirm] = useState("");
   const [resetting, setResetting] = useState(false);
   const [typesSaved, setTypesSaved] = useState(false);
+  const [editFaultTypes, setEditFaultTypes] = useState<string[]>(faultTypes);
+  const [newFaultType, setNewFaultType] = useState("");
+  const [faultTypesSaved, setFaultTypesSaved] = useState(false);
   const typesSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const faultTypesSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
       if (typesSavedTimer.current) clearTimeout(typesSavedTimer.current);
+      if (faultTypesSavedTimer.current) clearTimeout(faultTypesSavedTimer.current);
     };
   }, []);
 
@@ -98,6 +107,7 @@ export default function SettingsModal({
             [
               ["sections", "Sections & Rooms"],
               ["types", "Item Types"],
+              ["faults", "Fault Types"],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -461,6 +471,76 @@ export default function SettingsModal({
               }}
             >
               {typesSaved ? "Saved!" : "Save Types"}
+            </button>
+          </div>
+        )}
+
+        {settingsTab === "faults" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {editFaultTypes.map((ft, i) => (
+              <div key={i} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <input
+                  value={ft}
+                  onChange={(e) => {
+                    const updated = [...editFaultTypes];
+                    updated[i] = e.target.value;
+                    setEditFaultTypes(updated);
+                  }}
+                  style={{ flex: 1, fontSize: 11 }}
+                />
+                <button
+                  onClick={() => setEditFaultTypes(editFaultTypes.filter((_, j) => j !== i))}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#ef4444",
+                    fontSize: 14,
+                    padding: "0 4px",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <div style={{ display: "flex", gap: 6 }}>
+              <input
+                placeholder="New fault type..."
+                value={newFaultType}
+                onChange={(e) => setNewFaultType(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newFaultType.trim()) {
+                    setEditFaultTypes([...editFaultTypes, newFaultType.trim()]);
+                    setNewFaultType("");
+                  }
+                }}
+                style={{ flex: 1, fontSize: 11 }}
+              />
+              <button
+                onClick={() => {
+                  if (newFaultType.trim()) {
+                    setEditFaultTypes([...editFaultTypes, newFaultType.trim()]);
+                    setNewFaultType("");
+                  }
+                }}
+                style={{ padding: "4px 8px" }}
+              >
+                Add
+              </button>
+            </div>
+            <button
+              className="btn btn-primary"
+              style={{ width: "100%", marginBottom: 6 }}
+              onClick={async () => {
+                const cleaned = editFaultTypes.map((t) => t.trim()).filter(Boolean);
+                await onUpdateFaultTypes(cleaned);
+                setEditFaultTypes(cleaned);
+                setFaultTypesSaved(true);
+                if (faultTypesSavedTimer.current) clearTimeout(faultTypesSavedTimer.current);
+                faultTypesSavedTimer.current = setTimeout(() => setFaultTypesSaved(false), 2500);
+              }}
+            >
+              {faultTypesSaved ? "Saved!" : "Save Fault Types"}
             </button>
           </div>
         )}

@@ -17,8 +17,9 @@ model School {
   name        String
   code        String   @unique
   address     String?
-  customTypes Json?
-  typeIcons   Json?
+  customTypes      Json?
+  typeIcons        Json?
+  customFaultTypes Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

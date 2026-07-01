@@ -143,6 +143,15 @@ export const api = {
       }),
   },
 
+  faultTypes: {
+    list: () => apiFetch<{ types: string[] }>("/api/fault-types"),
+    update: (types: string[]) =>
+      apiFetch<{ types: string[] }>("/api/fault-types", {
+        method: "PUT",
+        body: JSON.stringify({ types }),
+      }),
+  },
+
   superAdmin: {
     schools: {
       list: () => apiFetch<unknown[]>("/api/super-admin/schools"),

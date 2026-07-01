@@ -22,7 +22,7 @@ import BulkMoveModal from "@/components/modals/BulkMoveModal";
 import SettingsModal from "@/components/modals/SettingsModal";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { api } from "@/lib/api-client";
-import { DEFAULT_ITEM_TYPES } from "@/lib/constants";
+import { DEFAULT_ITEM_TYPES, FAULT_TYPES } from "@/lib/constants";
 import type { Item } from "@/components/ItemChip";
 
 export default function DashboardPage() {
@@ -47,20 +47,23 @@ export default function DashboardPage() {
   const [dragOverRoom, setDragOverRoom] = useState<string | null>(null);
   const [itemTypes, setItemTypes] = useState<string[]>(DEFAULT_ITEM_TYPES);
   const [typeIcons, setTypeIcons] = useState<Record<string, string>>({});
+  const [faultTypes, setFaultTypes] = useState<string[]>([...FAULT_TYPES]);
 
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [fetchedItems, fetchedSections, fetchedLog, fetchedTypesData] = await Promise.all([
+        const [fetchedItems, fetchedSections, fetchedLog, fetchedTypesData, fetchedFaultTypesData] = await Promise.all([
           api.items.list(),
           api.sections.list(),
           api.moveLog.list(),
           api.types.list(),
+          api.faultTypes.list(),
         ]);
         setItems(fetchedItems);
         setItemTypes(fetchedTypesData.types);
         setTypeIcons(fetchedTypesData.icons);
+        setFaultTypes(fetchedFaultTypesData.types);
         // Sections API returns array of { id, name, rooms: [...] } — reshape to Record<name, roomNames[]>
         const sectionMap: Record<string, string[]> = {};
         if (Array.isArray(fetchedSections)) {
@@ -501,6 +504,7 @@ export default function DashboardPage() {
       {modal?.type === "fault" && (
         <FaultModal
           item={(modal.item as Item) ?? ({} as Item)}
+          faultTypes={faultTypes}
           onSubmit={handleFaultSubmit}
           onClose={() => setModal(null)}
         />
@@ -571,6 +575,11 @@ export default function DashboardPage() {
             await api.types.update(types, icons);
             setItemTypes(types);
             setTypeIcons(icons);
+          }}
+          faultTypes={faultTypes}
+          onUpdateFaultTypes={async (types: string[]) => {
+            await api.faultTypes.update(types);
+            setFaultTypes(types);
           }}
           onResetAllData={async () => {
             await api.reset();
