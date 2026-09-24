@@ -521,9 +521,9 @@ export default function DashboardPage() {
             onAddRepair={handleAddRepair}
             onReportFault={() => { setModal({ type: "fault", item: selectedItem }); setSelectedItem(null); }}
             onUpdateFault={handleUpdateFaultInPanel}
-            onMove={() => setModal({ type: "move", item: selectedItem, pendingLocation: null })}
+            onMove={() => { setModal({ type: "move", item: selectedItem, pendingLocation: null }); setSelectedItem(null); }}
             onLoanOut={() => { setModal({ type: "loanout", item: selectedItem }); setSelectedItem(null); }}
-            onReturn={() => setModal({ type: "return", item: selectedItem })}
+            onReturn={() => { setModal({ type: "return", item: selectedItem }); setSelectedItem(null); }}
             setLightbox={setLightbox}
             allLocations={Object.values(sections).flat()}
             itemTypes={itemTypes}
