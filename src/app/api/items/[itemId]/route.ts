@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireSession, isAdmin, canAccess } from "@/lib/auth-guard";
-import { CONDEMNED_SECTION } from "@/lib/constants";
+import { CONDEMNED_SECTION, CONDEMNED_STATUS } from "@/lib/constants";
 import { handleApiError } from "@/lib/api-errors";
 import { ItemUpdateSchema } from "@/lib/validation/items";
 
@@ -116,8 +116,26 @@ export async function PUT(req: NextRequest, { params }: Params) {
       data.status !== "Waiting for Condemnation" &&
       existing.status === "Waiting for Condemnation"
     ) {
-      data.locationName = existing.prevLocation || "Spare";
+      // Only send the item back to its pre-condemnation room when it is still
+      // sitting in the condemned section and the user didn't pick another room
+      // in the same save. If it was moved since, prevLocation is stale.
+      const stillInCondemned = existing.locationName === CONDEMNED_SECTION;
+      const roomUnchanged =
+        resolvedLocation === undefined || resolvedLocation === existing.locationName;
+      if (stillInCondemned && roomUnchanged) {
+        data.locationName = existing.prevLocation || "Spare";
+      }
       data.prevLocation = null;
+    }
+
+    // "Condemned" is the final disposal status: stamp when it happened so the
+    // record can be purged after CONDEMNED_RETENTION_YEARS. Location is kept
+    // as-is so the Condemned Items tab can show where it was removed from.
+    if (data.status === CONDEMNED_STATUS && existing.status !== CONDEMNED_STATUS) {
+      data.condemnedAt = new Date();
+    }
+    if (data.status && data.status !== CONDEMNED_STATUS && existing.status === CONDEMNED_STATUS) {
+      data.condemnedAt = null;
     }
 
     const item = await prisma.item.update({

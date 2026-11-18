@@ -2,6 +2,7 @@ interface TabNavProps {
   tab: string;
   setTab: (t: string) => void;
   faultReportCount?: number;
+  condemnedCount?: number;
 }
 
 const TABS: [string, string][] = [
@@ -9,9 +10,10 @@ const TABS: [string, string][] = [
   ["list", "📋 List"],
   ["faults", "⚠ Faults"],
   ["loans", "🔄 Loans"],
+  ["condemned", "🗑 Condemned Items"],
 ];
 
-export default function TabNav({ tab, setTab, faultReportCount }: TabNavProps) {
+export default function TabNav({ tab, setTab, faultReportCount, condemnedCount }: TabNavProps) {
   return (
     <div style={{ borderBottom: "1px solid #e2e8f0", padding: "0 16px", display: "flex", gap: 2, flexShrink: 0, overflowX: "auto" }}>
       {TABS.map(([k, l]) => (
@@ -30,6 +32,11 @@ export default function TabNav({ tab, setTab, faultReportCount }: TabNavProps) {
               verticalAlign: "top",
             }}>
               {faultReportCount}
+            </span>
+          )}
+          {k === "condemned" && condemnedCount !== undefined && condemnedCount > 0 && (
+            <span style={{ marginLeft: 4, color: "#94a3b8", fontSize: 10 }}>
+              ({condemnedCount})
             </span>
           )}
         </button>

@@ -49,6 +49,7 @@ src/
 │   │   │   ├── faults/route.ts       # POST — report fault
 │   │   │   ├── repairs/route.ts      # GET, POST repairs
 │   │   │   ├── loans/route.ts        # POST loan-out / return
+│   │   │   ├── condemn-docs/route.ts # POST attach disposal PDF (admin)
 │   │   │   └── move/route.ts         # POST move item
 │   │   ├── items/route.ts            # GET list, POST create
 │   │   ├── sections/[sectionId]/
@@ -58,6 +59,8 @@ src/
 │   │   ├── faults/[faultId]/route.ts # PUT update fault status
 │   │   ├── faults/route.ts           # GET school-wide faults
 │   │   ├── loans/route.ts            # GET active loans
+│   │   ├── condemned/route.ts        # GET condemned items + docs (purges >5yr old first)
+│   │   ├── condemn-docs/[docId]/route.ts # DELETE disposal PDF (+ S3 file)
 │   │   ├── move-log/route.ts         # GET audit log
 │   │   ├── profile/route.ts          # PUT change password (bcrypt verify + hash)
 │   │   ├── reports/route.ts          # GET summary stats
@@ -82,6 +85,7 @@ src/
 │   ├── ListView.tsx                  # Search + filter table (type, status, warranty)
 │   ├── FaultsView.tsx                # School-wide fault dashboard
 │   ├── LoansView.tsx                 # Person cards + loan management
+│   ├── CondemnedView.tsx             # Condemned Items tab — list + PDF attach/remove
 │   ├── DetailPanel.tsx               # Floating draggable detail window (mobile-safe width)
 │   ├── Header.tsx                    # Two-row: logo+auth row / action-buttons row
 │   ├── StatsBar.tsx                  # 9 clickable stat cards → tab/filter navigation
@@ -108,7 +112,8 @@ src/
 │   ├── api-client.ts                 # Typed fetch wrapper — client components only
 │   ├── api-errors.ts                 # handleApiError() — centralised error responses
 │   ├── constants.ts                  # STATUS_COLORS, TYPE_ICON, FAULT_TYPES, SEV_COLORS, helpers
-│   ├── upload.ts                     # uploadFile(), deleteFile() via S3 SDK
+│   ├── upload.ts                     # uploadFile(), deleteFile(), keyFromUrl() via S3 SDK
+│   ├── condemned.ts                  # 5-year retention: purgeExpiredCondemned()
 │   └── validation/                   # Zod schemas: items.ts, faults.ts, loans.ts, repairs.ts, sections.ts
 ├── middleware.ts                     # Route protection, redirects unauthenticated users
 └── types/
@@ -117,7 +122,7 @@ prisma/
 ├── schema.prisma                     # Full schema — School, User, Item, Section, Room, Fault, Repair, LoanEntry, MoveLogEntry
 └── seed.ts                           # Creates super admin + demo school + 3 user accounts
 tests/
-└── api/                              # Vitest tests — 66 tests across 10 files
+└── api/                              # Vitest tests — 95 tests across 12 files
 retheme.py                            # One-shot script used to migrate dark → light theme colours
 railway.toml                          # Railway build + start config
 ```
@@ -137,7 +142,8 @@ School
         ├── faults: Fault[]
         ├── repairs: Repair[]
         ├── loanEntries: LoanEntry[]
-        └── moveLog: MoveLogEntry[]
+        ├── moveLog: MoveLogEntry[]
+        └── condemnDocs: CondemnDoc[]  (disposal PDFs)
 ```
 
 Every tenant table has `schoolId String` referencing `School.id`. API routes always filter by `schoolId` from the session — never from request parameters.
@@ -148,6 +154,8 @@ Key item fields:
 - `loanedTo: String?` — borrower name (denormalised for quick display)
 - `status: String` — see `STATUS_LIST` in `constants.ts`
 - `warrantyEnd: DateTime?`
+- `prevLocation: String?` — room before auto-routing to `CONDEMNED_SECTION`
+- `condemnedAt: DateTime?` — set when status becomes `"Condemned"`; drives 5-year purge
 
 Key room fields:
 - `sortOrder: Int` — display order within a section; updated via `PUT /api/sections/[sectionId]/rooms`
@@ -201,6 +209,8 @@ Input validation uses Zod schemas from `src/lib/validation/`. Parse with `.safeP
 | `FAULT_TYPES` | Selectable fault types |
 | `SEV_COLORS` | Maps severity → `{bg, text}` — light tinted backgrounds, dark text |
 | `CONDEMNED_SECTION` | `"Condemned / Pending Disposal"` — protected section name |
+| `CONDEMNED_STATUS` | `"Condemned"` — final disposal status (edit form only, via `EDIT_STATUS_LIST`) |
+| `CONDEMNED_RETENTION_YEARS` | `5` — condemned records + files purged after this |
 | `getStatusColor(status)` | Returns `STATUS_COLORS[status]` with fallback |
 | `getTypeIcon(type)` | Returns emoji with fallback |
 | `fmtDate(d)` | Formats date as `dd Mon yyyy` (en-SG locale) |
@@ -238,7 +248,10 @@ Status badge colours are in `STATUS_COLORS` (light tint bg + dark text). Severit
 - When last open fault is resolved (`PUT /api/faults/[faultId]`, status → `"Resolved"`) → item status → `"Operational"`
 
 ### Condemned routing (enforced client-side in `DetailPanel` edit handler)
-Setting status to `"Waiting for Condemnation"` calls `api.items.move()` to relocate the item to `CONDEMNED_SECTION`. Previous location is saved so it can be restored if status reverts.
+Enforced server-side in `PUT /api/items/[itemId]`. Setting status to `"Waiting for Condemnation"` relocates the item to `CONDEMNED_SECTION` and saves `prevLocation`. When status changes away, `prevLocation` is restored **only if** the item is still in `CONDEMNED_SECTION` and no other room was picked in the same save; `prevLocation` is always cleared. The move route clears `prevLocation` when an item leaves `CONDEMNED_SECTION` (stale values once sent items back to ITLR — feedback round 4).
+
+### Condemned items
+`status: "Condemned"` stamps `condemnedAt` (cleared if restored). The dashboard splits `items` into `activeItems` (room map, list, stats, loans, faults, reports) and condemned items, which load separately from `GET /api/condemned` into the Condemned Items tab. Admins attach proof-of-disposal PDFs (`POST /api/upload` folder `documents`, 10MB, then `POST /api/items/[itemId]/condemn-docs`). `GET /api/condemned` first calls `purgeExpiredCondemned()`, which deletes items condemned over 5 years ago plus all their S3 files.
 
 ### Loan location override
 `POST /api/items/[itemId]/loans` with `action: "loan-out"` sets `item.location = borrowerName` and `item.isLoaned = true`. `action: "return"` sets `item.location = returnLocation` and `item.isLoaned = false`.
@@ -290,7 +303,7 @@ npm install          # also runs: prisma generate (postinstall)
 npx prisma db push   # sync schema to local DB (no migration files needed in dev)
 npx prisma db seed   # create demo accounts
 npm run dev          # start Next.js dev server
-npm test             # run Vitest test suite (66 tests)
+npm test             # run Vitest test suite (95 tests)
 npx tsc --noEmit     # type check
 npm run build        # production build check
 ```

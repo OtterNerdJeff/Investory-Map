@@ -148,3 +148,42 @@ describe("POST /api/upload", () => {
     expect(data.error).toBe("Invalid file type");
   });
 });
+
+describe("POST /api/upload — condemned item PDFs", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (requireSession as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "user1",
+      role: "SCHOOL_ADMIN",
+      schoolId: "sch_1",
+    });
+  });
+
+  async function post(file: File, folder: string) {
+    const req = new NextRequest("http://localhost/api/upload", {
+      method: "POST",
+      body: makeFormData({ file, folder }),
+    });
+    const res = await POST(req);
+    return { status: res.status, data: await res.json() };
+  }
+
+  it("accepts a PDF into the documents folder", async () => {
+    (uploadFile as ReturnType<typeof vi.fn>).mockResolvedValue("https://cdn/documents/x.pdf");
+    const { status } = await post(new File(["%PDF"], "form.pdf", { type: "application/pdf" }), "documents");
+    expect(status).toBe(200);
+    expect(uploadFile).toHaveBeenCalledWith(expect.any(Buffer), "application/pdf", "documents");
+  });
+
+  it("rejects images in the documents folder", async () => {
+    const { status } = await post(new File(["x"], "a.jpg", { type: "image/jpeg" }), "documents");
+    expect(status).toBe(400);
+  });
+
+  it("allows PDFs up to 10MB but not larger", async () => {
+    const big = new File([new Uint8Array(10 * 1024 * 1024 + 1)], "big.pdf", { type: "application/pdf" });
+    const { status, data } = await post(big, "documents");
+    expect(status).toBe(400);
+    expect(data.error).toBe("File too large (max 10MB)");
+  });
+});

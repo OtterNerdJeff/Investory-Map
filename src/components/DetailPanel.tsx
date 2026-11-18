@@ -10,6 +10,7 @@ import {
   fmtDate,
   toDateInput,
   SEV_COLORS,
+  EDIT_STATUS_LIST,
 } from "@/lib/constants";
 
 // --- Internal types -------------------------------------------------------
@@ -534,13 +535,7 @@ export default function DetailPanel({
                   value={(ed.status as string) || ""}
                   onChange={e => setEd(d => ({ ...d, status: e.target.value }))}
                 >
-                  {[
-                    "Operational",
-                    "Spare",
-                    "Under Maintenance",
-                    "Waiting for Condemnation",
-                    "Others",
-                  ].map(st => (
+                  {EDIT_STATUS_LIST.map(st => (
                     <option key={st}>{st}</option>
                   ))}
                 </select>

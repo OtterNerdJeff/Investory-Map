@@ -9,6 +9,7 @@ import SectionsView from "@/components/SectionsView";
 import ListView from "@/components/ListView";
 import FaultsView, { type FaultReportData } from "@/components/FaultsView";
 import LoansView from "@/components/LoansView";
+import CondemnedView, { type CondemnedItem } from "@/components/CondemnedView";
 import DetailPanel from "@/components/DetailPanel";
 import MoveModal from "@/components/modals/MoveModal";
 import FaultModal from "@/components/modals/FaultModal";
@@ -23,7 +24,7 @@ import BulkMoveModal from "@/components/modals/BulkMoveModal";
 import SettingsModal from "@/components/modals/SettingsModal";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { api } from "@/lib/api-client";
-import { DEFAULT_ITEM_TYPES, FAULT_TYPES } from "@/lib/constants";
+import { CONDEMNED_STATUS, DEFAULT_ITEM_TYPES, FAULT_TYPES } from "@/lib/constants";
 import type { Item } from "@/components/ItemChip";
 
 export default function DashboardPage() {
@@ -50,6 +51,17 @@ export default function DashboardPage() {
   const [typeIcons, setTypeIcons] = useState<Record<string, string>>({});
   const [faultTypes, setFaultTypes] = useState<string[]>([...FAULT_TYPES]);
   const [faultReports, setFaultReports] = useState<unknown[]>([]);
+  const [condemnedItems, setCondemnedItems] = useState<CondemnedItem[]>([]);
+
+  // Condemned items live in their own tab; everything else (room map, list,
+  // stats, loans, faults) works on the remaining active inventory.
+  const activeItems = (items as Item[]).filter(i => i.status !== CONDEMNED_STATUS);
+
+  const refreshCondemned = async () => {
+    try {
+      setCondemnedItems(await api.condemned.list() as CondemnedItem[]);
+    } catch (e) { console.error("Failed to load condemned items:", e); }
+  };
 
 
   useEffect(() => {
@@ -87,6 +99,7 @@ export default function DashboardPage() {
       }
     }
     loadData();
+    refreshCondemned();
   }, []);
 
   // ── Item selection helpers ──────────────────────────────────────────────────
@@ -217,7 +230,7 @@ export default function DashboardPage() {
     const item = selectedItem as Item;
     try {
       await api.items.update(item.id, patch);
-      await refreshItems();
+      await Promise.all([refreshItems(), refreshCondemned()]);
       setSelectedItem({ ...item, ...patch });
     } catch (e) { console.error(e); }
   };
@@ -228,7 +241,7 @@ export default function DashboardPage() {
     try {
       await api.items.delete(item.id);
       setSelectedItem(null);
-      await refreshItems();
+      await Promise.all([refreshItems(), refreshCondemned()]);
     } catch (e) { console.error(e); }
   };
 
@@ -354,7 +367,7 @@ export default function DashboardPage() {
   };
 
   // Compute stats from items (items have status/isLoaned/warrantyEnd/faults fields)
-  const typedItems = items as Array<{
+  const typedItems = activeItems as unknown as Array<{
     status: string;
     isLoaned: boolean;
     warrantyEnd: string | null;
@@ -447,12 +460,12 @@ export default function DashboardPage() {
 
       <StatsBar stats={stats} onClickStat={handleStatClick} />
 
-      <TabNav tab={tab} setTab={setTab} faultReportCount={pendingReportCount} />
+      <TabNav tab={tab} setTab={setTab} faultReportCount={pendingReportCount} condemnedCount={condemnedItems.length} />
 
       <div style={{ flex: 1, overflow: "auto", padding: "14px 16px" }}>
         {tab === "sections" && (
           <SectionsView
-            items={items as Item[]}
+            items={activeItems}
             sections={sections}
             activeSection={activeSection}
             setActiveSection={setActiveSection}
@@ -475,7 +488,7 @@ export default function DashboardPage() {
         )}
         {tab === "list" && (
           <ListView
-            items={items as Item[]}
+            items={activeItems}
             search={search}
             setSearch={setSearch}
             filterType={filterType}
@@ -488,7 +501,7 @@ export default function DashboardPage() {
         )}
         {tab === "faults" && (
           <FaultsView
-            items={items as Item[]}
+            items={activeItems}
             onSelectItem={openItem}
             onUpdateFault={onUpdateFault}
             setLightbox={setLightbox}
@@ -500,11 +513,20 @@ export default function DashboardPage() {
         )}
         {tab === "loans" && (
           <LoansView
-            items={items as Item[]}
+            items={activeItems}
             onSelectItem={openItem}
             onSelectLoanedItem={item => { setSelectedItem(item as unknown as Item); setDetailTab("history"); }}
             onReturn={item => setModal({ type: "return", item: item as unknown })}
             onLoanOut={item => setModal({ type: "loanout", item: item as unknown })}
+          />
+        )}
+        {tab === "condemned" && (
+          <CondemnedView
+            items={condemnedItems}
+            isAdmin={isAdmin}
+            onSelectItem={c => openItem((items as Item[]).find(i => i.id === c.id) ?? (c as unknown as Item))}
+            onChanged={refreshCondemned}
+            typeIcons={typeIcons}
           />
         )}
       </div>
@@ -543,7 +565,7 @@ export default function DashboardPage() {
       )}
       {modal?.type === "reportfault" && (
         <ReportFaultModal
-          items={items as Item[]}
+          items={activeItems}
           typeIcons={typeIcons}
           onPickItem={(item) => setModal({ type: "fault", item })}
           onClose={() => setModal(null)}
@@ -580,7 +602,7 @@ export default function DashboardPage() {
         />
       )}
       {modal?.type === "report" && (
-        <ReportModal items={items as Item[]} onClose={() => setModal(null)} />
+        <ReportModal items={activeItems} onClose={() => setModal(null)} />
       )}
       {modal?.type === "movelog" && (
         <MoveLogModal

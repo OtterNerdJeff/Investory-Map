@@ -221,6 +221,85 @@ describe("PUT /api/items/[itemId] — condemned auto-routing", () => {
     expect(callArgs.data.prevLocation).toBeNull();
     expect(callArgs.data.status).toBe("Operational");
   });
+
+  // Client bug (round 4): item was condemned from ITLR (prevLocation=ITLR),
+  // later moved to another room, then status changed to "Others" — it jumped
+  // back to ITLR because the stale prevLocation overrode the real location.
+  async function putWith(existing: Record<string, unknown>, body: Record<string, unknown>) {
+    (requireSession as any).mockResolvedValue({ id: "user1", role: "SCHOOL_ADMIN", schoolId: "sch_1" });
+    (prisma.item.findFirst as any).mockResolvedValue({ id: "item1", schoolId: "sch_1", label: "P01", ...existing });
+    (prisma.item.update as any).mockImplementation(async (args: any) => ({
+      id: "item1", schoolId: "sch_1", ...args.data, faults: [], repairs: [], loanHistory: [], moveLog: [],
+    }));
+    const req = new NextRequest("http://localhost/api/items/item1", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const res = await PUT_ONE(req, { params: Promise.resolve({ itemId: "item1" }) });
+    expect(res.status).toBe(200);
+    return (prisma.item.update as any).mock.calls[0][0].data;
+  }
+
+  it("keeps the current room when the item was already moved out of the condemned section", async () => {
+    const data = await putWith(
+      { locationName: "ROOM_B", status: "Waiting for Condemnation", prevLocation: "ITLR" },
+      { status: "Others", location: "ROOM_B" }
+    );
+    expect(data.locationName).toBe("ROOM_B");
+    expect(data.prevLocation).toBeNull();
+  });
+
+  it("honours a room picked in the same save instead of restoring prevLocation", async () => {
+    const data = await putWith(
+      { locationName: "Condemned / Pending Disposal", status: "Waiting for Condemnation", prevLocation: "ITLR" },
+      { status: "Others", location: "ROOM_C" }
+    );
+    expect(data.locationName).toBe("ROOM_C");
+    expect(data.prevLocation).toBeNull();
+  });
+
+  it("restores prevLocation when the form re-sends the condemned section unchanged", async () => {
+    const data = await putWith(
+      { locationName: "Condemned / Pending Disposal", status: "Waiting for Condemnation", prevLocation: "ROOM_A" },
+      { status: "Others", location: "Condemned / Pending Disposal" }
+    );
+    expect(data.locationName).toBe("ROOM_A");
+  });
+
+  it("stamps condemnedAt when status becomes 'Condemned'", async () => {
+    const data = await putWith(
+      { locationName: "ROOM_B", status: "Operational", condemnedAt: null },
+      { status: "Condemned", location: "ROOM_B" }
+    );
+    expect(data.condemnedAt).toBeInstanceOf(Date);
+    expect(data.locationName).toBe("ROOM_B");
+  });
+
+  it("keeps the original condemnedAt when re-saving a condemned item", async () => {
+    const data = await putWith(
+      { locationName: "ROOM_B", status: "Condemned", condemnedAt: new Date("2024-01-01") },
+      { status: "Condemned", label: "P01 renamed" }
+    );
+    expect(data.condemnedAt).toBeUndefined();
+  });
+
+  it("clears condemnedAt when a condemned item is restored", async () => {
+    const data = await putWith(
+      { locationName: "ROOM_B", status: "Condemned", condemnedAt: new Date("2024-01-01") },
+      { status: "Spare", location: "ROOM_B" }
+    );
+    expect(data.condemnedAt).toBeNull();
+    expect(data.locationName).toBe("ROOM_B");
+  });
+
+  it("never moves an item when the status changes between non-condemned values", async () => {
+    const data = await putWith(
+      { locationName: "ROOM_B", status: "Operational", prevLocation: "ITLR" },
+      { status: "Others", location: "ROOM_B" }
+    );
+    expect(data.locationName).toBe("ROOM_B");
+  });
 });
 
 describe("cross-tenant access", () => {

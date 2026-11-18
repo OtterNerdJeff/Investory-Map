@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession, canAccess } from "@/lib/auth-guard";
 import { handleApiError } from "@/lib/api-errors";
 import { ItemMoveSchema } from "@/lib/validation/items";
+import { CONDEMNED_SECTION } from "@/lib/constants";
 
 type Params = { params: Promise<{ itemId: string }> };
 
@@ -36,7 +37,12 @@ export async function POST(req: NextRequest, { params }: Params) {
 
       const updated = await tx.item.update({
         where: { id: itemId },
-        data: { locationName: input.toLocation },
+        data: {
+          locationName: input.toLocation,
+          // Leaving the condemned section makes the remembered pre-condemnation
+          // room stale; clear it so a later status change can't snap back to it.
+          ...(input.toLocation !== CONDEMNED_SECTION ? { prevLocation: null } : {}),
+        },
       });
       const logEntry = await tx.moveLogEntry.create({
         data: {

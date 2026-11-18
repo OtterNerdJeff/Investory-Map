@@ -29,6 +29,7 @@ model School {
   moveLog      MoveLogEntry[]
   auditLog     AuditLogEntry[]
   faultReports FaultReport[]
+  condemnDocs  CondemnDoc[]
 }
 
 model User {
@@ -65,6 +66,7 @@ model Item {
   comment      String?
   sheet        String?
   prevLocation String?
+  condemnedAt  DateTime? // set when status becomes "Condemned"; record purged 5 years later
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -73,9 +75,11 @@ model Item {
   moveLog      MoveLogEntry[]
   loanHistory  LoanEntry[]
   faultReports FaultReport[]
+  condemnDocs  CondemnDoc[]
 
   @@index([schoolId])
   @@index([schoolId, status])
+  @@index([schoolId, condemnedAt])
   @@index([schoolId, type])
 }
 
@@ -211,4 +215,21 @@ model FaultReport {
 
   @@index([schoolId])
   @@index([status])
+}
+
+// Proof-of-disposal PDFs attached to a condemned item. Purged together with
+// the item 5 years after condemnation (see src/lib/condemned.ts).
+model CondemnDoc {
+  id         String   @id @default(cuid())
+  schoolId   String
+  school     School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  itemId     String
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  url        String
+  fileName   String
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+
+  @@index([schoolId])
+  @@index([itemId])
 }

@@ -35,8 +35,20 @@ export async function uploadFile(
   return `${S3_ENDPOINT}/${BUCKET}/${key}`;
 }
 
+/**
+ * Recovers the object key from a stored upload URL. Handles both URL shapes
+ * uploadFile() has produced: `${S3_PUBLIC_URL}/<key>` (current) and
+ * `<endpoint>/<bucket>/<key>` (before S3_PUBLIC_URL existed).
+ */
+export function keyFromUrl(url: string): string | null {
+  if (S3_PUBLIC_URL && url.startsWith(`${S3_PUBLIC_URL}/`)) {
+    return url.slice(S3_PUBLIC_URL.length + 1) || null;
+  }
+  return url.split(`/${BUCKET}/`)[1] || null;
+}
+
 export async function deleteFile(url: string): Promise<void> {
-  const key = url.split(`/${BUCKET}/`)[1];
+  const key = keyFromUrl(url);
   if (!key) return;
 
   await s3.send(

@@ -12,12 +12,21 @@ export const STATUS_LIST = [
   "Others",
 ] as const;
 
+// Final status for items that have been disposed of. Condemned items are
+// hidden from the room map and list, and shown in the "Condemned Items" tab.
+// Only selectable when editing an existing item, not when adding one.
+export const CONDEMNED_STATUS = "Condemned";
+export const CONDEMNED_RETENTION_YEARS = 5;
+
+// Statuses offered in the item edit form.
+export const EDIT_STATUS_LIST = [...STATUS_LIST, CONDEMNED_STATUS] as const;
+
 // Full set of acceptable status strings for server-side validation.
 // Includes "Faulty" — not user-selectable in create forms, but auto-derived
 // by fault-escalation logic (see CLAUDE.md "Fault auto-escalation") and
 // therefore must round-trip through PUT.
 export const STATUS_ENUM_FOR_VALIDATION = [
-  ...STATUS_LIST,
+  ...EDIT_STATUS_LIST,
   "Faulty",
 ] as const;
 
@@ -60,6 +69,12 @@ export const STATUS_COLORS: Record<
     border: "#ef4444",
     text: "#dc2626",
     badge: "#fee2e2",
+  },
+  Condemned: {
+    bg: "#e2e8f0",
+    border: "#475569",
+    text: "#334155",
+    badge: "#e2e8f0",
   },
 };
 

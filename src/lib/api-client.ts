@@ -134,10 +134,23 @@ export const api = {
       formData.append("file", file);
       if (folder) formData.append("folder", folder);
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? "Upload failed");
+      }
       const data = await res.json() as { url: string };
       return data.url;
     },
+  },
+
+  // Condemned items (Condemned Items tab) and their proof-of-disposal PDFs
+  condemned: {
+    list: (schoolId?: string) =>
+      apiFetch<unknown[]>("/api/condemned", { schoolId }),
+    addDoc: (itemId: string, data: { url: string; fileName: string }) =>
+      apiFetch<unknown>(`/api/items/${itemId}/condemn-docs`, { method: "POST", body: JSON.stringify(data) }),
+    deleteDoc: (docId: string) =>
+      apiFetch<unknown>(`/api/condemn-docs/${docId}`, { method: "DELETE" }),
   },
 
   reset: () =>
