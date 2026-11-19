@@ -60,6 +60,85 @@ function keptUntil(condemnedAt: string | null): string {
   return fmtDate(d.toISOString());
 }
 
+// ── Sorting ─────────────────────────────────────────────────────────────────
+type SortKey = "label" | "type" | "assetCode" | "serial" | "room" | "condemnedAt";
+interface Sort { key: SortKey; asc: boolean }
+
+const SORT_LABELS: Record<SortKey, string> = {
+  label: "Label",
+  type: "Type",
+  assetCode: "Asset code",
+  serial: "Serial",
+  room: "Room",
+  condemnedAt: "Condemned date",
+};
+
+/**
+ * Sorts a copy of `rows`. Text compares the way people read it ("P2" before
+ * "P10"). Rows with nothing in the sorted column always go last. Ties fall
+ * back to the label so the order stays steady.
+ */
+function sortRows<T extends { label: string }>(
+  rows: T[],
+  sort: Sort,
+  value: (row: T, key: SortKey) => string | null | undefined
+): T[] {
+  const text = (a: string, b: string) =>
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+  return [...rows].sort((a, b) => {
+    const va = (value(a, sort.key) ?? "").trim();
+    const vb = (value(b, sort.key) ?? "").trim();
+    if (!va && vb) return 1;
+    if (va && !vb) return -1;
+    const main = sort.asc ? text(va, vb) : text(vb, va);
+    return main || text(a.label, b.label);
+  });
+}
+
+/** "Sort by" dropdown plus a direction button. Easy to reach on a phone. */
+function SortControl({ sort, setSort, keys }: { sort: Sort; setSort: (s: Sort) => void; keys: SortKey[] }) {
+  const isDate = sort.key === "condemnedAt";
+  return (
+    <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 8, flexWrap: "wrap" }}>
+      <span style={{ fontSize: 11, color: "#64748b" }}>Sort by</span>
+      <select
+        aria-label="Sort by"
+        value={sort.key}
+        onChange={e => setSort({ key: e.target.value as SortKey, asc: e.target.value !== "condemnedAt" })}
+        style={{ width: "auto", padding: "5px 8px", fontSize: 11 }}
+      >
+        {keys.map(k => <option key={k} value={k}>{SORT_LABELS[k]}</option>)}
+      </select>
+      <button
+        className="btn"
+        onClick={() => setSort({ ...sort, asc: !sort.asc })}
+        title="Switch the order"
+        style={{ fontSize: 11, padding: "5px 10px" }}
+      >
+        {isDate ? (sort.asc ? "Oldest first" : "Newest first") : (sort.asc ? "A → Z" : "Z → A")} ⇅
+      </button>
+    </div>
+  );
+}
+
+/** Column heading that sorts when clicked. */
+function SortTh({ label, k, sort, setSort }: { label: string; k: SortKey; sort: Sort; setSort: (s: Sort) => void }) {
+  const active = sort.key === k;
+  return (
+    <th
+      onClick={() => setSort(active ? { key: k, asc: !sort.asc } : { key: k, asc: k !== "condemnedAt" })}
+      title={`Sort by ${label}`}
+      aria-sort={active ? (sort.asc ? "ascending" : "descending") : undefined}
+      style={{ ...th, cursor: "pointer", userSelect: "none", color: active ? "#4f46e5" : th.color }}
+    >
+      {label} {active ? (sort.asc ? "▲" : "▼") : ""}
+    </th>
+  );
+}
+
+const PENDING_SORT_KEYS: SortKey[] = ["label", "type", "room", "assetCode", "serial"];
+const CONFIRMED_SORT_KEYS: SortKey[] = ["condemnedAt", "label", "type", "room", "assetCode", "serial"];
+
 const th: React.CSSProperties = { padding: "5px 7px", textAlign: "left", color: "#94a3b8", fontWeight: 400, whiteSpace: "nowrap" };
 const td: React.CSSProperties = { padding: "5px 7px", color: "#64748b" };
 const card: React.CSSProperties = { background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12, marginBottom: 14 };
@@ -74,6 +153,8 @@ export default function CondemnedView({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [error, setError] = useState("");
+  const [pendingSort, setPendingSort] = useState<Sort>({ key: "label", asc: true });
+  const [confirmedSort, setConfirmedSort] = useState<Sort>({ key: "condemnedAt", asc: false });
   const fileInput = useRef<HTMLInputElement>(null);
   // Which items the next chosen file is for.
   const attachFor = useRef<{ ids: string[]; bulk: boolean } | null>(null);
@@ -83,8 +164,13 @@ export default function CondemnedView({
     !q ||
     [i.label, i.type, i.brand, i.model, i.serial, i.assetCode, i.location, i.prevLocation]
       .some(v => (v ?? "").toLowerCase().includes(q));
-  const pendingShown = pending.filter(matches);
-  const confirmedShown = items.filter(matches);
+  // "Room" means the room the item came from.
+  const pendingShown = sortRows(pending.filter(matches), pendingSort, (i, k) =>
+    k === "room" ? i.prevLocation : k === "condemnedAt" ? null : i[k]
+  );
+  const confirmedShown = sortRows(items.filter(matches), confirmedSort, (i, k) =>
+    k === "room" ? i.location : i[k]
+  );
 
   // Only count ticks for items that are still pending.
   const pendingIds = new Set(pending.map(i => i.id));
@@ -241,6 +327,8 @@ export default function CondemnedView({
             Nothing is waiting. To start, open an item and click &quot;🗑 Condemn&quot;.
           </div>
         ) : (
+          <>
+          <SortControl sort={pendingSort} setSort={setPendingSort} keys={PENDING_SORT_KEYS} />
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
               <thead>
@@ -257,9 +345,12 @@ export default function CondemnedView({
                       />
                     </th>
                   )}
-                  {["Label", "Type", "Asset Code", "Serial", "Came From", ""].map((h, i) => (
-                    <th key={i} style={th}>{h}</th>
-                  ))}
+                  <SortTh label="Label" k="label" sort={pendingSort} setSort={setPendingSort} />
+                  <SortTh label="Type" k="type" sort={pendingSort} setSort={setPendingSort} />
+                  <SortTh label="Asset Code" k="assetCode" sort={pendingSort} setSort={setPendingSort} />
+                  <SortTh label="Serial" k="serial" sort={pendingSort} setSort={setPendingSort} />
+                  <SortTh label="Came From" k="room" sort={pendingSort} setSort={setPendingSort} />
+                  <th style={th} />
                 </tr>
               </thead>
               <tbody>
@@ -309,6 +400,7 @@ export default function CondemnedView({
               <div style={{ color: "#94a3b8", fontSize: 11, padding: 12 }}>No waiting items match your search.</div>
             )}
           </div>
+          </>
         )}
       </div>
 
@@ -323,13 +415,20 @@ export default function CondemnedView({
         {items.length === 0 ? (
           <div style={emptyBox}>No confirmed items yet.</div>
         ) : (
+          <>
+          <SortControl sort={confirmedSort} setSort={setConfirmedSort} keys={CONFIRMED_SORT_KEYS} />
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                  {["Label", "Type", "Asset Code", "Serial", "Removed From", "Condemned On", "Kept Until", "Document"].map(h => (
-                    <th key={h} style={th}>{h}</th>
-                  ))}
+                  <SortTh label="Label" k="label" sort={confirmedSort} setSort={setConfirmedSort} />
+                  <SortTh label="Type" k="type" sort={confirmedSort} setSort={setConfirmedSort} />
+                  <SortTh label="Asset Code" k="assetCode" sort={confirmedSort} setSort={setConfirmedSort} />
+                  <SortTh label="Serial" k="serial" sort={confirmedSort} setSort={setConfirmedSort} />
+                  <SortTh label="Removed From" k="room" sort={confirmedSort} setSort={setConfirmedSort} />
+                  <SortTh label="Condemned On" k="condemnedAt" sort={confirmedSort} setSort={setConfirmedSort} />
+                  <th style={th}>Kept Until</th>
+                  <th style={th}>Document</th>
                 </tr>
               </thead>
               <tbody>
@@ -390,6 +489,7 @@ export default function CondemnedView({
               <div style={{ color: "#94a3b8", fontSize: 11, padding: 12 }}>No confirmed items match your search.</div>
             )}
           </div>
+          </>
         )}
       </div>
     </div>
