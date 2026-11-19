@@ -149,6 +149,9 @@ export const api = {
       apiFetch<unknown[]>("/api/condemned", { schoolId }),
     addDoc: (itemId: string, data: { url: string; fileName: string }) =>
       apiFetch<unknown>(`/api/items/${itemId}/condemn-docs`, { method: "POST", body: JSON.stringify(data) }),
+    // One document for many items; confirms the pending ones as condemned.
+    confirm: (itemIds: string[], data: { url: string; fileName: string }) =>
+      apiFetch<{ ok: boolean; attached: number; confirmed: number }>("/api/condemned/confirm", { method: "POST", body: JSON.stringify({ itemIds, ...data }) }),
     deleteDoc: (docId: string) =>
       apiFetch<unknown>(`/api/condemn-docs/${docId}`, { method: "DELETE" }),
   },

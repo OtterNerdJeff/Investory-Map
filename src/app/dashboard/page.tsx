@@ -24,7 +24,7 @@ import BulkMoveModal from "@/components/modals/BulkMoveModal";
 import SettingsModal from "@/components/modals/SettingsModal";
 import ChangePasswordModal from "@/components/modals/ChangePasswordModal";
 import { api } from "@/lib/api-client";
-import { CONDEMNED_STATUS, DEFAULT_ITEM_TYPES, FAULT_TYPES } from "@/lib/constants";
+import { CONDEMNED_SECTION, CONDEMNED_STATUS, DEFAULT_ITEM_TYPES, FAULT_TYPES, PENDING_CONDEMN_STATUS } from "@/lib/constants";
 import type { Item } from "@/components/ItemChip";
 
 export default function DashboardPage() {
@@ -52,10 +52,21 @@ export default function DashboardPage() {
   const [faultTypes, setFaultTypes] = useState<string[]>([...FAULT_TYPES]);
   const [faultReports, setFaultReports] = useState<unknown[]>([]);
   const [condemnedItems, setCondemnedItems] = useState<CondemnedItem[]>([]);
+  // Short message at the bottom of the screen after a condemn action.
+  const [notice, setNotice] = useState<{ text: string; undo?: () => void; showList?: boolean } | null>(null);
 
   // Condemned items live in their own tab; everything else (room map, list,
   // stats, loans, faults) works on the remaining active inventory.
   const activeItems = (items as Item[]).filter(i => i.status !== CONDEMNED_STATUS);
+
+  // Step 1 of the condemn workflow: items waiting for a document.
+  const pendingCondemn = activeItems.filter(i => i.status === PENDING_CONDEMN_STATUS);
+
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 9000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   const refreshCondemned = async () => {
     try {
@@ -123,7 +134,7 @@ export default function DashboardPage() {
       case "OK":           setTab("list"); setFilterStatus("Operational"); setFilterType("All"); break;
       case "Faulty":       setTab("list"); setFilterStatus("Faulty"); setFilterType("All"); break;
       case "Maint.":       setTab("list"); setFilterStatus("Under Maintenance"); setFilterType("All"); break;
-      case "Condemned":    setTab("list"); setFilterStatus("Waiting for Condemnation"); setFilterType("All"); break;
+      case "To Condemn":   setTab("condemned"); break;
       case "On Loan":      setTab("loans"); break;
       case "Open Faults":  setTab("faults"); break;
       case "Expiring ⚠":  setTab("list"); setFilterStatus("__expiring__"); setFilterType("All"); break;
@@ -233,6 +244,69 @@ export default function DashboardPage() {
       await Promise.all([refreshItems(), refreshCondemned()]);
       setSelectedItem({ ...item, ...patch });
     } catch (e) { console.error(e); }
+  };
+
+  // ── Condemn workflow ────────────────────────────────────────────────────────
+  // Takes waiting items off the condemn list. The server returns each one to
+  // the room it came from. `statusFor` says which status to give it back.
+  const putBackItems = async (ids: string[], statusFor: (item: Item) => string) => {
+    const all = items as Item[];
+    const results = await Promise.allSettled(
+      ids.map(id => {
+        const item = all.find(i => i.id === id);
+        return item ? api.items.update(id, { status: statusFor(item) }) : Promise.resolve(null);
+      })
+    );
+    await Promise.all([refreshItems(), refreshCondemned()]);
+    const failed = results.filter(r => r.status === "rejected").length;
+    if (failed > 0) throw new Error(`${failed} item${failed === 1 ? "" : "s"} could not be put back.`);
+  };
+
+  // With no record of the earlier status, fall back on open faults.
+  const guessStatus = (item: Item) =>
+    (item.faults ?? []).some(f => f.status !== "Resolved") ? "Faulty" : "Operational";
+
+  const handlePutBack = async (ids: string[]) => {
+    await putBackItems(ids, guessStatus);
+    setNotice({ text: `${ids.length} item${ids.length === 1 ? "" : "s"} put back.` });
+  };
+
+  // One click: send items to the "Waiting for document" list.
+  const handleCondemn = async (ids: string[]) => {
+    const all = items as Item[];
+    const targets = ids
+      .map(id => all.find(i => i.id === id))
+      .filter((i): i is Item => !!i && i.status !== PENDING_CONDEMN_STATUS && i.status !== CONDEMNED_STATUS);
+    const onLoan = targets.filter(i => i.isLoaned);
+    const toSend = targets.filter(i => !i.isLoaned);
+    const before = new Map(toSend.map(i => [i.id, i.status]));
+
+    const results = await Promise.allSettled(
+      toSend.map(i => api.items.update(i.id, { status: PENDING_CONDEMN_STATUS }))
+    );
+    await refreshItems();
+
+    const sentIds = toSend.filter((_, idx) => results[idx].status === "fulfilled").map(i => i.id);
+    const failed = toSend.length - sentIds.length;
+    const parts: string[] = [];
+    if (sentIds.length > 0) parts.push(`${sentIds.length} item${sentIds.length === 1 ? "" : "s"} sent to the condemn list.`);
+    if (onLoan.length > 0) parts.push(`${onLoan.length} on loan skipped. Return ${onLoan.length === 1 ? "it" : "them"} first.`);
+    if (failed > 0) parts.push(`${failed} could not be sent.`);
+    if (parts.length === 0) parts.push("Nothing to send. These items are already on the condemn list.");
+
+    setNotice({
+      text: parts.join(" "),
+      showList: sentIds.length > 0,
+      undo: sentIds.length > 0
+        ? async () => {
+            setNotice(null);
+            try {
+              // Undo gives each item back the exact status it had.
+              await putBackItems(sentIds, i => before.get(i.id) ?? guessStatus(i));
+            } catch (e) { console.error(e); }
+          }
+        : undefined,
+    });
   };
 
   const handleDeleteItem = async () => {
@@ -460,7 +534,7 @@ export default function DashboardPage() {
 
       <StatsBar stats={stats} onClickStat={handleStatClick} />
 
-      <TabNav tab={tab} setTab={setTab} faultReportCount={pendingReportCount} condemnedCount={condemnedItems.length} />
+      <TabNav tab={tab} setTab={setTab} faultReportCount={pendingReportCount} condemnedCount={condemnedItems.length} condemnPendingCount={pendingCondemn.length} />
 
       <div style={{ flex: 1, overflow: "auto", padding: "14px 16px" }}>
         {tab === "sections" && (
@@ -522,10 +596,13 @@ export default function DashboardPage() {
         )}
         {tab === "condemned" && (
           <CondemnedView
+            pending={pendingCondemn}
             items={condemnedItems}
             isAdmin={isAdmin}
             onSelectItem={c => openItem((items as Item[]).find(i => i.id === c.id) ?? (c as unknown as Item))}
-            onChanged={refreshCondemned}
+            onChanged={async () => { await Promise.all([refreshItems(), refreshCondemned()]); }}
+            onPutBack={handlePutBack}
+            onShowRoom={sections[CONDEMNED_SECTION] ? () => { setActiveSection(CONDEMNED_SECTION); setTab("sections"); } : undefined}
             typeIcons={typeIcons}
           />
         )}
@@ -546,6 +623,8 @@ export default function DashboardPage() {
             onMove={() => { setModal({ type: "move", item: selectedItem, pendingLocation: null }); setSelectedItem(null); }}
             onLoanOut={() => { setModal({ type: "loanout", item: selectedItem }); setSelectedItem(null); }}
             onReturn={() => { setModal({ type: "return", item: selectedItem }); setSelectedItem(null); }}
+            onCondemn={isAdmin ? () => { const id = (selectedItem as Item).id; setSelectedItem(null); handleCondemn([id]); } : undefined}
+            onPutBack={isAdmin ? () => { const id = (selectedItem as Item).id; setSelectedItem(null); handlePutBack([id]).catch(e => setNotice({ text: e instanceof Error ? e.message : "Could not put the item back." })); } : undefined}
             setLightbox={setLightbox}
             allLocations={Object.values(sections).flat()}
             itemTypes={itemTypes}
@@ -671,7 +750,33 @@ export default function DashboardPage() {
         <div style={{ position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)", background: "#ffffff", border: "1px solid #6366f1", borderRadius: 8, padding: "8px 14px", display: "flex", alignItems: "center", gap: 10, zIndex: 190, boxShadow: "0 4px 20px rgba(15,23,42,0.3)" }}>
           <span style={{ fontSize: 11, color: "#4338ca" }}>{selectedItems.size} items selected</span>
           <button className="btn" onClick={() => setModal({ type: "bulkmove" })} style={{ fontSize: 10, padding: "3px 10px" }}>⇄ Move All</button>
+          {isAdmin && (
+            <button
+              className="btn"
+              onClick={() => { const ids = Array.from(selectedItems); clearSelection(); handleCondemn(ids); }}
+              title="Send the selected items to the condemn list"
+              style={{ fontSize: 10, padding: "3px 10px", background: "#fee2e2", borderColor: "#f87171", color: "#b91c1c" }}
+            >
+              🗑 Condemn All
+            </button>
+          )}
           <button onClick={clearSelection} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: 12 }}>✕ Clear</button>
+        </div>
+      )}
+
+      {notice && (
+        <div
+          role="status"
+          style={{ position: "fixed", bottom: selectedItems.size > 0 ? 64 : 16, left: "50%", transform: "translateX(-50%)", background: "#1e293b", color: "#ffffff", borderRadius: 8, padding: "9px 14px", display: "flex", alignItems: "center", gap: 10, zIndex: 195, boxShadow: "0 4px 20px rgba(15,23,42,0.3)", fontSize: 11, maxWidth: "calc(100vw - 32px)", flexWrap: "wrap" }}
+        >
+          <span>{notice.text}</span>
+          {notice.showList && tab !== "condemned" && (
+            <button onClick={() => { setTab("condemned"); setNotice(null); }} style={{ background: "none", border: "1px solid #94a3b8", borderRadius: 5, color: "#ffffff", cursor: "pointer", fontFamily: "inherit", fontSize: 10, padding: "3px 8px" }}>View list</button>
+          )}
+          {notice.undo && (
+            <button onClick={notice.undo} style={{ background: "none", border: "1px solid #94a3b8", borderRadius: 5, color: "#ffffff", cursor: "pointer", fontFamily: "inherit", fontSize: 10, padding: "3px 8px" }}>↩ Undo</button>
+          )}
+          <button aria-label="Dismiss" onClick={() => setNotice(null)} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 12 }}>✕</button>
         </div>
       )}
 

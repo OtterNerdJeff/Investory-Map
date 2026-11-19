@@ -2,6 +2,7 @@
 
 import React from "react";
 import ItemChip, { Item } from "./ItemChip";
+import { CONDEMNED_SECTION, PENDING_CONDEMN_STATUS } from "@/lib/constants";
 
 interface SectionsViewProps {
   items: Item[];
@@ -47,6 +48,9 @@ export default function SectionsView({
   typeIcons,
 }: SectionsViewProps) {
   const rooms = sections[activeSection] || [];
+  const pendingCondemnCount = items.filter(
+    (i) => i.status === PENDING_CONDEMN_STATUS
+  ).length;
 
   return (
     <div>
@@ -59,15 +63,50 @@ export default function SectionsView({
           alignItems: "center",
         }}
       >
-        {Object.keys(sections).map((s) => (
+        {Object.keys(sections)
+          .filter((s) => s !== CONDEMNED_SECTION)
+          .map((s) => (
+            <button
+              key={s}
+              className={`sec-btn${activeSection === s ? " active" : ""}`}
+              onClick={() => setActiveSection(s)}
+            >
+              {s}
+            </button>
+          ))}
+        {/* The condemned room is always one click away: pinned on the right,
+            with the number of items waiting in it. */}
+        {sections[CONDEMNED_SECTION] && (
           <button
-            key={s}
-            className={`sec-btn${activeSection === s ? " active" : ""}`}
-            onClick={() => setActiveSection(s)}
+            className="sec-btn"
+            onClick={() => setActiveSection(CONDEMNED_SECTION)}
+            title="Items waiting to be condemned"
+            style={{
+              marginLeft: "auto",
+              background: activeSection === CONDEMNED_SECTION ? "#fee2e2" : "#fff7ed",
+              borderColor: activeSection === CONDEMNED_SECTION ? "#dc2626" : "#fdba74",
+              color: "#c2410c",
+              fontWeight: 500,
+            }}
           >
-            {s}
+            🗑 Condemned room
+            {pendingCondemnCount > 0 && (
+              <span
+                style={{
+                  marginLeft: 6,
+                  background: "#c2410c",
+                  color: "#ffffff",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  padding: "1px 6px",
+                  borderRadius: 99,
+                }}
+              >
+                {pendingCondemnCount}
+              </span>
+            )}
           </button>
-        ))}
+        )}
       </div>
 
       <div style={{ fontSize: 10, color: "#94a3b8", marginBottom: 10 }}>

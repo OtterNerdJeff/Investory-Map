@@ -11,6 +11,8 @@ import {
   toDateInput,
   SEV_COLORS,
   EDIT_STATUS_LIST,
+  CONDEMNED_STATUS,
+  PENDING_CONDEMN_STATUS,
 } from "@/lib/constants";
 
 // --- Internal types -------------------------------------------------------
@@ -77,6 +79,10 @@ interface DetailPanelProps {
   onMove: () => void;
   onLoanOut: () => void;
   onReturn: () => void;
+  /** One click: send this item to the "Waiting for document" condemn list. */
+  onCondemn?: () => void;
+  /** Take a waiting item off the condemn list and back to its room. */
+  onPutBack?: () => void;
   setLightbox: (src: string) => void;
   allLocations: string[];
   itemTypes: string[];
@@ -192,6 +198,8 @@ export default function DetailPanel({
   onMove,
   onLoanOut,
   onReturn,
+  onCondemn,
+  onPutBack,
   setLightbox,
   allLocations,
   itemTypes,
@@ -411,6 +419,39 @@ export default function DetailPanel({
               onClick={onReturn}
             >
               ↩ Return
+            </button>
+          )}
+          {onCondemn && item.status !== PENDING_CONDEMN_STATUS && item.status !== CONDEMNED_STATUS && (
+            <button
+              className="btn no-drag"
+              disabled={item.isLoaned}
+              title={
+                item.isLoaned
+                  ? "This item is on loan. Return it first."
+                  : "Send to the condemn list. It waits there until a document is uploaded."
+              }
+              style={{
+                fontSize: 9,
+                padding: "3px 8px",
+                background: "#fee2e2",
+                borderColor: "#f87171",
+                color: "#b91c1c",
+                opacity: item.isLoaned ? 0.5 : 1,
+                cursor: item.isLoaned ? "not-allowed" : "pointer",
+              }}
+              onClick={onCondemn}
+            >
+              🗑 Condemn
+            </button>
+          )}
+          {onPutBack && item.status === PENDING_CONDEMN_STATUS && (
+            <button
+              className="btn no-drag"
+              title="Not condemning this after all. Return it to its room."
+              style={{ fontSize: 9, padding: "3px 8px" }}
+              onClick={onPutBack}
+            >
+              ↩ Put back
             </button>
           )}
           <div style={{ flex: 1 }} />

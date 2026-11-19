@@ -175,8 +175,16 @@ describe("POST /api/upload — condemned item PDFs", () => {
     expect(uploadFile).toHaveBeenCalledWith(expect.any(Buffer), "application/pdf", "documents");
   });
 
-  it("rejects images in the documents folder", async () => {
-    const { status } = await post(new File(["x"], "a.jpg", { type: "image/jpeg" }), "documents");
+  it("accepts a photo of the signed form (JPG or PNG)", async () => {
+    (uploadFile as ReturnType<typeof vi.fn>).mockResolvedValue("https://cdn/documents/x.jpeg");
+    const jpg = await post(new File(["x"], "a.jpg", { type: "image/jpeg" }), "documents");
+    const png = await post(new File(["x"], "a.png", { type: "image/png" }), "documents");
+    expect(jpg.status).toBe(200);
+    expect(png.status).toBe(200);
+  });
+
+  it("rejects other file types in the documents folder", async () => {
+    const { status } = await post(new File(["x"], "a.docx", { type: "application/msword" }), "documents");
     expect(status).toBe(400);
   });
 

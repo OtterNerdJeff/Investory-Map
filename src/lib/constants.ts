@@ -16,6 +16,10 @@ export const STATUS_LIST = [
 // hidden from the room map and list, and shown in the "Condemned Items" tab.
 // Only selectable when editing an existing item, not when adding one.
 export const CONDEMNED_STATUS = "Condemned";
+// Items waiting for a condemnation document. They sit in CONDEMNED_SECTION on
+// the room map and in the "Waiting for document" list of the Condemned tab.
+// Attaching a document confirms them as CONDEMNED_STATUS.
+export const PENDING_CONDEMN_STATUS = "Waiting for Condemnation";
 export const CONDEMNED_RETENTION_YEARS = 5;
 
 // Statuses offered in the item edit form.

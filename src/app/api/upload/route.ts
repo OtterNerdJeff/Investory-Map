@@ -7,11 +7,11 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const MB = 1024 * 1024;
 
 // Each folder accepts its own file types and size limit. "documents" holds
-// proof-of-disposal PDFs for condemned items.
+// condemnation documents: a PDF, or a photo of the signed form.
 const FOLDER_RULES = {
   photos: { types: IMAGE_TYPES, maxBytes: 5 * MB },
   signatures: { types: IMAGE_TYPES, maxBytes: 5 * MB },
-  documents: { types: ["application/pdf"], maxBytes: 10 * MB },
+  documents: { types: ["application/pdf", "image/jpeg", "image/png"], maxBytes: 10 * MB },
 } as const;
 type AllowedFolder = keyof typeof FOLDER_RULES;
 

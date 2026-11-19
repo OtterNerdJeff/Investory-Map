@@ -49,7 +49,7 @@ src/
 │   │   │   ├── faults/route.ts       # POST — report fault
 │   │   │   ├── repairs/route.ts      # GET, POST repairs
 │   │   │   ├── loans/route.ts        # POST loan-out / return
-│   │   │   ├── condemn-docs/route.ts # POST attach disposal PDF (admin)
+│   │   │   ├── condemn-docs/route.ts # POST attach condemnation document to one item (admin)
 │   │   │   └── move/route.ts         # POST move item
 │   │   ├── items/route.ts            # GET list, POST create
 │   │   ├── sections/[sectionId]/
@@ -60,7 +60,8 @@ src/
 │   │   ├── faults/route.ts           # GET school-wide faults
 │   │   ├── loans/route.ts            # GET active loans
 │   │   ├── condemned/route.ts        # GET condemned items + docs (purges >5yr old first)
-│   │   ├── condemn-docs/[docId]/route.ts # DELETE disposal PDF (+ S3 file)
+│   │   ├── condemned/confirm/route.ts # POST one document for many items → confirms them (admin)
+│   │   ├── condemn-docs/[docId]/route.ts # DELETE document from an item (last one → back to pending)
 │   │   ├── move-log/route.ts         # GET audit log
 │   │   ├── profile/route.ts          # PUT change password (bcrypt verify + hash)
 │   │   ├── reports/route.ts          # GET summary stats
@@ -85,7 +86,7 @@ src/
 │   ├── ListView.tsx                  # Search + filter table (type, status, warranty)
 │   ├── FaultsView.tsx                # School-wide fault dashboard
 │   ├── LoansView.tsx                 # Person cards + loan management
-│   ├── CondemnedView.tsx             # Condemned Items tab — list + PDF attach/remove
+│   ├── CondemnedView.tsx             # Condemned Items tab — "Waiting for document" (checkboxes, bulk upload) + confirmed list
 │   ├── DetailPanel.tsx               # Floating draggable detail window (mobile-safe width)
 │   ├── Header.tsx                    # Two-row: logo+auth row / action-buttons row
 │   ├── StatsBar.tsx                  # 9 clickable stat cards → tab/filter navigation
@@ -113,7 +114,7 @@ src/
 │   ├── api-errors.ts                 # handleApiError() — centralised error responses
 │   ├── constants.ts                  # STATUS_COLORS, TYPE_ICON, FAULT_TYPES, SEV_COLORS, helpers
 │   ├── upload.ts                     # uploadFile(), deleteFile(), keyFromUrl() via S3 SDK
-│   ├── condemned.ts                  # 5-year retention: purgeExpiredCondemned()
+│   ├── condemned.ts                  # Condemn workflow helpers + 5-year retention: purgeExpiredCondemned()
 │   └── validation/                   # Zod schemas: items.ts, faults.ts, loans.ts, repairs.ts, sections.ts
 ├── middleware.ts                     # Route protection, redirects unauthenticated users
 └── types/
@@ -122,7 +123,7 @@ prisma/
 ├── schema.prisma                     # Full schema — School, User, Item, Section, Room, Fault, Repair, LoanEntry, MoveLogEntry
 └── seed.ts                           # Creates super admin + demo school + 3 user accounts
 tests/
-└── api/                              # Vitest tests — 95 tests across 12 files
+└── api/                              # Vitest tests — 109 tests across 12 files
 retheme.py                            # One-shot script used to migrate dark → light theme colours
 railway.toml                          # Railway build + start config
 ```
@@ -210,6 +211,7 @@ Input validation uses Zod schemas from `src/lib/validation/`. Parse with `.safeP
 | `SEV_COLORS` | Maps severity → `{bg, text}` — light tinted backgrounds, dark text |
 | `CONDEMNED_SECTION` | `"Condemned / Pending Disposal"` — protected section name |
 | `CONDEMNED_STATUS` | `"Condemned"` — final disposal status (edit form only, via `EDIT_STATUS_LIST`) |
+| `PENDING_CONDEMN_STATUS` | `"Waiting for Condemnation"` — on the condemn list, waiting for a document |
 | `CONDEMNED_RETENTION_YEARS` | `5` — condemned records + files purged after this |
 | `getStatusColor(status)` | Returns `STATUS_COLORS[status]` with fallback |
 | `getTypeIcon(type)` | Returns emoji with fallback |
@@ -250,8 +252,15 @@ Status badge colours are in `STATUS_COLORS` (light tint bg + dark text). Severit
 ### Condemned routing (enforced client-side in `DetailPanel` edit handler)
 Enforced server-side in `PUT /api/items/[itemId]`. Setting status to `"Waiting for Condemnation"` relocates the item to `CONDEMNED_SECTION` and saves `prevLocation`. When status changes away, `prevLocation` is restored **only if** the item is still in `CONDEMNED_SECTION` and no other room was picked in the same save; `prevLocation` is always cleared. The move route clears `prevLocation` when an item leaves `CONDEMNED_SECTION` (stale values once sent items back to ITLR — feedback round 4).
 
+### Condemn workflow (pending → document → confirmed)
+1. **Send to the condemn list (one click).** `🗑 Condemn` in `DetailPanel`, or `🗑 Condemn All` in the multi-select bar. Both call `handleCondemn` in `dashboard/page.tsx`, which sets status `PENDING_CONDEMN_STATUS` (`"Waiting for Condemnation"`). The server relocates the item to `CONDEMNED_SECTION`. Items on loan are refused (`400`). A toast offers **Undo**, which restores the exact earlier status.
+2. **Waiting for document.** Pending items stay on the room map (in the condemned room, pinned as the `🗑 Condemned room` button on the Sections tab) and are listed with checkboxes in the Condemned Items tab. An admin ticks several, then uploads one file (PDF, JPG or PNG, 10MB, `POST /api/upload` folder `documents`). `POST /api/condemned/confirm` links that one file to every ticked item (one `CondemnDoc` row per item, same `url`), all-or-nothing.
+3. **Confirmed.** An item with a document becomes `status: "Condemned"` with `condemnedAt` stamped. Removing an item's last document (`DELETE /api/condemn-docs/[docId]`) sends it back to pending. The stored file is deleted only when no other item still uses it.
+
+Admins can still set `"Condemned"` by hand in the edit form, with no document (client decision). Shared helpers live in `src/lib/condemned.ts` (`attachCondemnDoc`, `confirmCondemnedData`, `backToPendingData`, `deleteDocFilesIfUnused`).
+
 ### Condemned items
-`status: "Condemned"` stamps `condemnedAt` (cleared if restored). The dashboard splits `items` into `activeItems` (room map, list, stats, loans, faults, reports) and condemned items, which load separately from `GET /api/condemned` into the Condemned Items tab. Admins attach proof-of-disposal PDFs (`POST /api/upload` folder `documents`, 10MB, then `POST /api/items/[itemId]/condemn-docs`). `GET /api/condemned` first calls `purgeExpiredCondemned()`, which deletes items condemned over 5 years ago plus all their S3 files.
+`status: "Condemned"` stamps `condemnedAt` (cleared if restored). The dashboard splits `items` into `activeItems` (room map, list, stats, loans, faults, reports) and condemned items, which load separately from `GET /api/condemned` into the Condemned Items tab. `GET /api/condemned` first calls `purgeExpiredCondemned()`, which deletes items condemned over 5 years ago plus their S3 files (a document shared with an unexpired item is kept).
 
 ### Loan location override
 `POST /api/items/[itemId]/loans` with `action: "loan-out"` sets `item.location = borrowerName` and `item.isLoaned = true`. `action: "return"` sets `item.location = returnLocation` and `item.isLoaned = false`.
@@ -263,7 +272,7 @@ Enforced server-side in `PUT /api/items/[itemId]`. Setting status to `"Waiting f
 Rooms can be dragged within a section. `onRoomCardDragStart` / `onRoomCardDrop` in `dashboard/page.tsx` build a reordered array, apply optimistic UI via `setSections`, then persist each changed room's `sortOrder` via `api.sections.updateRoomOrder()` → `PUT /api/sections/[sectionId]/rooms`. Rolls back on error.
 
 ### Stats bar click-to-filter
-Each of the 9 cards in `StatsBar` calls `onClickStat(label)`. `handleStatClick` in `dashboard/page.tsx` maps labels to tab switches + filter state changes (e.g. "Faulty" → List tab with `filterStatus: "Faulty"`; "On Loan" → Loans tab).
+Each of the 9 cards in `StatsBar` calls `onClickStat(label)`. `handleStatClick` in `dashboard/page.tsx` maps labels to tab switches + filter state changes (e.g. "Faulty" → List tab with `filterStatus: "Faulty"`; "On Loan" → Loans tab; "To Condemn" → Condemned Items tab).
 
 ### CSV export
 `onExportCSV` creates a temporary `<a>` element pointing to `/api/export` and programmatically clicks it. The route returns `Content-Disposition: attachment; filename=inventory.csv`.
@@ -303,7 +312,7 @@ npm install          # also runs: prisma generate (postinstall)
 npx prisma db push   # sync schema to local DB (no migration files needed in dev)
 npx prisma db seed   # create demo accounts
 npm run dev          # start Next.js dev server
-npm test             # run Vitest test suite (95 tests)
+npm test             # run Vitest test suite (109 tests)
 npx tsc --noEmit     # type check
 npm run build        # production build check
 ```

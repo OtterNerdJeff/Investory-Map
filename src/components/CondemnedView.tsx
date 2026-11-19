@@ -26,13 +26,32 @@ export interface CondemnedItem {
   condemnDocs: CondemnDoc[];
 }
 
+// An item waiting for its condemnation document.
+export interface PendingCondemnItem {
+  id: string;
+  label: string;
+  type: string;
+  brand?: string | null;
+  model?: string | null;
+  serial?: string | null;
+  assetCode?: string | null;
+  location: string;
+  prevLocation?: string | null;
+}
+
 interface CondemnedViewProps {
+  pending: PendingCondemnItem[];
   items: CondemnedItem[];
   isAdmin: boolean;
-  onSelectItem: (item: CondemnedItem) => void;
+  onSelectItem: (item: { id: string }) => void;
   onChanged: () => Promise<void> | void;
+  onPutBack: (ids: string[]) => Promise<void> | void;
+  onShowRoom?: () => void;
   typeIcons?: Record<string, string>;
 }
+
+const DOC_ACCEPT = "application/pdf,image/jpeg,image/png";
+const DOC_HINT = "PDF or photo (JPG, PNG), up to 10MB";
 
 function keptUntil(condemnedAt: string | null): string {
   if (!condemnedAt) return "—";
@@ -41,65 +60,132 @@ function keptUntil(condemnedAt: string | null): string {
   return fmtDate(d.toISOString());
 }
 
-export default function CondemnedView({ items, isAdmin, onSelectItem, onChanged, typeIcons }: CondemnedViewProps) {
+const th: React.CSSProperties = { padding: "5px 7px", textAlign: "left", color: "#94a3b8", fontWeight: 400, whiteSpace: "nowrap" };
+const td: React.CSSProperties = { padding: "5px 7px", color: "#64748b" };
+const card: React.CSSProperties = { background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12, marginBottom: 14 };
+const heading: React.CSSProperties = { fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: "#4f46e5" };
+const emptyBox: React.CSSProperties = { color: "#94a3b8", fontSize: 12, padding: 18, textAlign: "center" };
+
+export default function CondemnedView({
+  pending, items, isAdmin, onSelectItem, onChanged, onPutBack, onShowRoom, typeIcons,
+}: CondemnedViewProps) {
   const [search, setSearch] = useState("");
+  const [checked, setChecked] = useState<Set<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [error, setError] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
-  const attachFor = useRef<string | null>(null);
+  // Which items the next chosen file is for.
+  const attachFor = useRef<{ ids: string[]; bulk: boolean } | null>(null);
 
   const q = search.trim().toLowerCase();
-  const filtered = items.filter(i =>
+  const matches = (i: PendingCondemnItem) =>
     !q ||
-    [i.label, i.type, i.brand, i.model, i.serial, i.assetCode, i.location]
-      .some(v => (v ?? "").toLowerCase().includes(q))
-  );
+    [i.label, i.type, i.brand, i.model, i.serial, i.assetCode, i.location, i.prevLocation]
+      .some(v => (v ?? "").toLowerCase().includes(q));
+  const pendingShown = pending.filter(matches);
+  const confirmedShown = items.filter(matches);
 
-  const pickPdf = (itemId: string) => {
-    attachFor.current = itemId;
+  // Only count ticks for items that are still pending.
+  const pendingIds = new Set(pending.map(i => i.id));
+  const selectedIds = [...checked].filter(id => pendingIds.has(id));
+  const allShownChecked = pendingShown.length > 0 && pendingShown.every(i => checked.has(i.id));
+
+  const toggle = (id: string) =>
+    setChecked(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const toggleAllShown = () =>
+    setChecked(prev => {
+      const next = new Set(prev);
+      if (allShownChecked) pendingShown.forEach(i => next.delete(i.id));
+      else pendingShown.forEach(i => next.add(i.id));
+      return next;
+    });
+
+  const pickFile = (ids: string[], bulk: boolean) => {
+    if (ids.length === 0) return;
+    attachFor.current = { ids, bulk };
     setError("");
     fileInput.current?.click();
   };
 
   const onFileChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    const itemId = attachFor.current;
+    const target = attachFor.current;
     e.target.value = "";
-    if (!file || !itemId) return;
-    setBusyId(itemId);
+    if (!file || !target) return;
+    if (target.bulk) setBulkBusy(true);
+    else setBusyId(target.ids[0]);
     try {
+      // The file is uploaded once; every chosen item is linked to it.
       const url = await api.upload.file(file, "documents");
-      await api.condemned.addDoc(itemId, { url, fileName: file.name });
+      await api.condemned.confirm(target.ids, { url, fileName: file.name });
+      if (target.bulk) setChecked(new Set());
       await onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not attach the PDF");
+      setError(err instanceof Error ? err.message : "Could not attach the document");
     } finally {
+      setBulkBusy(false);
       setBusyId(null);
     }
   };
 
-  const removeDoc = async (itemId: string, doc: CondemnDoc) => {
-    if (!confirm(`Remove "${doc.fileName}"? This cannot be undone.`)) return;
-    setBusyId(itemId);
+  const removeDoc = async (item: CondemnedItem, doc: CondemnDoc) => {
+    const last = item.condemnDocs.length === 1;
+    const msg = last
+      ? `Remove "${doc.fileName}" from ${item.label}?\n\nThis is its only document, so the item will go back to "Waiting for document".`
+      : `Remove "${doc.fileName}" from ${item.label}?`;
+    if (!confirm(msg)) return;
+    setBusyId(item.id);
     setError("");
     try {
       await api.condemned.deleteDoc(doc.id);
       await onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not remove the PDF");
+      setError(err instanceof Error ? err.message : "Could not remove the document");
     } finally {
       setBusyId(null);
     }
   };
 
+  const putBack = async (ids: string[]) => {
+    setError("");
+    setBulkBusy(true);
+    try {
+      await onPutBack(ids);
+      setChecked(prev => {
+        const next = new Set(prev);
+        ids.forEach(id => next.delete(id));
+        return next;
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not put the item back");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const typeCell = (type: string) => (
+    <td style={{ ...td, whiteSpace: "nowrap" }}>
+      <span style={{ fontSize: 16 }}>{typeIcons?.[type] || getTypeIcon(type)}</span> {type}
+    </td>
+  );
+
   return (
     <div>
-      <input ref={fileInput} type="file" accept="application/pdf" onChange={onFileChosen} style={{ display: "none" }} />
+      <input ref={fileInput} type="file" accept={DOC_ACCEPT} onChange={onFileChosen} style={{ display: "none" }} />
 
       <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center", flexWrap: "wrap" }}>
-        <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 13, color: "#4f46e5" }}>
-          {items.length} condemned item{items.length === 1 ? "" : "s"}
-        </div>
+        {onShowRoom && (
+          <button className="btn" onClick={onShowRoom} style={{ fontSize: 11 }}>
+            🗺 Show condemned room
+          </button>
+        )}
         <input
           placeholder="Search label, type, serial, room..."
           value={search}
@@ -108,91 +194,204 @@ export default function CondemnedView({ items, isAdmin, onSelectItem, onChanged,
         />
       </div>
 
-      <div style={{ fontSize: 10, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
-        Records and attached PDFs are kept for {CONDEMNED_RETENTION_YEARS} years after an item is condemned, then removed automatically.
-        To bring an item back, click its row and change its status.
-      </div>
-
       {error && (
         <div style={{ fontSize: 11, color: "#dc2626", background: "#fee2e2", borderRadius: 6, padding: "6px 10px", marginBottom: 10 }}>
           {error}
         </div>
       )}
 
-      {items.length === 0 ? (
-        <div style={{ color: "#94a3b8", fontSize: 12, padding: 24, textAlign: "center", background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8 }}>
-          No condemned items. Set an item&apos;s status to &quot;Condemned&quot; to move it here.
-        </div>
-      ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                {["Label", "Type", "Asset Code", "Serial", "Removed From", "Condemned On", "Kept Until", "Proof (PDF)"].map(h => (
-                  <th key={h} style={{ padding: "5px 7px", textAlign: "left", color: "#94a3b8", fontWeight: 400, whiteSpace: "nowrap" }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(item => (
-                <tr
-                  key={item.id}
-                  onClick={() => onSelectItem(item)}
-                  style={{ borderBottom: "1px solid #f1f5f9", cursor: "pointer", verticalAlign: "top" }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "#ffffff")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "")}
-                >
-                  <td style={{ padding: "5px 7px", color: "#4f46e5" }}>{item.label}</td>
-                  <td style={{ padding: "5px 7px", color: "#64748b", whiteSpace: "nowrap" }}>
-                    <span style={{ fontSize: 16 }}>{typeIcons?.[item.type] || getTypeIcon(item.type)}</span> {item.type}
-                  </td>
-                  <td style={{ padding: "5px 7px", color: "#64748b" }}>{item.assetCode || "—"}</td>
-                  <td style={{ padding: "5px 7px", color: "#64748b" }}>{item.serial || "—"}</td>
-                  <td style={{ padding: "5px 7px", color: "#475569" }}>{item.location}</td>
-                  <td style={{ padding: "5px 7px", color: "#475569", whiteSpace: "nowrap" }}>{item.condemnedAt ? fmtDate(item.condemnedAt) : "—"}</td>
-                  <td style={{ padding: "5px 7px", color: "#94a3b8", whiteSpace: "nowrap" }}>{keptUntil(item.condemnedAt)}</td>
-                  <td style={{ padding: "5px 7px" }} onClick={e => e.stopPropagation()}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-start" }}>
-                      {item.condemnDocs.map(doc => (
-                        <span key={doc.id} style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
-                          <a href={doc.url} target="_blank" rel="noopener noreferrer" style={{ color: "#4f46e5", textDecoration: "none" }}>
-                            📄 {doc.fileName}
-                          </a>
-                          {isAdmin && (
-                            <button
-                              className="btn"
-                              title="Remove PDF"
-                              disabled={busyId === item.id}
-                              onClick={() => removeDoc(item.id, doc)}
-                              style={{ padding: "0 5px", fontSize: 10, lineHeight: "16px" }}
-                            >
-                              ✕
-                            </button>
-                          )}
-                        </span>
-                      ))}
-                      {isAdmin && (
-                        <button
-                          className="btn"
-                          disabled={busyId === item.id}
-                          onClick={() => pickPdf(item.id)}
-                          style={{ padding: "2px 8px", fontSize: 10 }}
-                        >
-                          {busyId === item.id ? "Uploading..." : "📎 Attach PDF"}
-                        </button>
-                      )}
-                      {!isAdmin && item.condemnDocs.length === 0 && <span style={{ color: "#94a3b8" }}>—</span>}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {filtered.length === 0 && (
-            <div style={{ color: "#94a3b8", fontSize: 11, padding: 12 }}>No condemned items match your search.</div>
+      {/* ── Step 1: waiting for a document ─────────────────────────────── */}
+      <div style={{ ...card, borderColor: pending.length > 0 ? "#fcd34d" : "#e2e8f0" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 6 }}>
+          <div style={heading}>⏳ Waiting for document ({pending.length})</div>
+          {isAdmin && pending.length > 0 && (
+            <div style={{ marginLeft: "auto", display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 11, color: selectedIds.length ? "#4338ca" : "#94a3b8" }}>
+                {selectedIds.length} selected
+              </span>
+              <button
+                className="btn btn-primary"
+                disabled={selectedIds.length === 0 || bulkBusy}
+                onClick={() => pickFile(selectedIds, true)}
+                title={DOC_HINT}
+                style={{ fontSize: 11, opacity: selectedIds.length === 0 || bulkBusy ? 0.5 : 1 }}
+              >
+                {bulkBusy ? "Working..." : selectedIds.length > 0 ? `📎 Upload 1 document for ${selectedIds.length} item${selectedIds.length === 1 ? "" : "s"}` : "📎 Upload document"}
+              </button>
+              <button
+                className="btn"
+                disabled={selectedIds.length === 0 || bulkBusy}
+                onClick={() => putBack(selectedIds)}
+                title="Not condemning these after all. Return them to their rooms."
+                style={{ fontSize: 11, opacity: selectedIds.length === 0 || bulkBusy ? 0.5 : 1 }}
+              >
+                ↩ Put back
+              </button>
+            </div>
           )}
         </div>
-      )}
+        <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8 }}>
+          {isAdmin
+            ? `Tick the items covered by one document, then upload it once (${DOC_HINT}). Items with a document become confirmed.`
+            : "These items are waiting for a condemnation document."}
+        </div>
+
+        {pending.length === 0 ? (
+          <div style={emptyBox}>
+            Nothing is waiting. To start, open an item and click &quot;🗑 Condemn&quot;.
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
+                  {isAdmin && (
+                    <th style={{ ...th, width: 28 }}>
+                      <input
+                        type="checkbox"
+                        aria-label="Select all"
+                        title="Select all"
+                        checked={allShownChecked}
+                        onChange={toggleAllShown}
+                        style={{ width: 15, height: 15, cursor: "pointer" }}
+                      />
+                    </th>
+                  )}
+                  {["Label", "Type", "Asset Code", "Serial", "Came From", ""].map((h, i) => (
+                    <th key={i} style={th}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {pendingShown.map(item => {
+                  const isChecked = checked.has(item.id);
+                  return (
+                    <tr
+                      key={item.id}
+                      onClick={() => onSelectItem(item)}
+                      style={{ borderBottom: "1px solid #f1f5f9", cursor: "pointer", background: isChecked ? "#ede9fe" : undefined }}
+                    >
+                      {isAdmin && (
+                        <td style={td} onClick={e => { e.stopPropagation(); toggle(item.id); }}>
+                          <input
+                            type="checkbox"
+                            aria-label={`Select ${item.label}`}
+                            checked={isChecked}
+                            onChange={() => { /* handled by the cell click */ }}
+                            style={{ width: 15, height: 15, cursor: "pointer" }}
+                          />
+                        </td>
+                      )}
+                      <td style={{ ...td, color: "#4f46e5" }}>{item.label}</td>
+                      {typeCell(item.type)}
+                      <td style={td}>{item.assetCode || "—"}</td>
+                      <td style={td}>{item.serial || "—"}</td>
+                      <td style={{ ...td, color: "#475569" }}>{item.prevLocation || "—"}</td>
+                      <td style={{ ...td, textAlign: "right", whiteSpace: "nowrap" }} onClick={e => e.stopPropagation()}>
+                        {isAdmin && (
+                          <button
+                            className="btn"
+                            disabled={bulkBusy || busyId === item.id}
+                            onClick={() => pickFile([item.id], false)}
+                            title={DOC_HINT}
+                            style={{ padding: "2px 8px", fontSize: 10 }}
+                          >
+                            {busyId === item.id ? "Uploading..." : "📎 Upload"}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {pendingShown.length === 0 && (
+              <div style={{ color: "#94a3b8", fontSize: 11, padding: 12 }}>No waiting items match your search.</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Step 2: confirmed ──────────────────────────────────────────── */}
+      <div style={card}>
+        <div style={{ ...heading, marginBottom: 6 }}>✅ Confirmed condemned ({items.length})</div>
+        <div style={{ fontSize: 10, color: "#64748b", marginBottom: 8 }}>
+          Records and documents are kept for {CONDEMNED_RETENTION_YEARS} years after an item is condemned, then removed automatically.
+          To bring an item back, click its row and change its status.
+        </div>
+
+        {items.length === 0 ? (
+          <div style={emptyBox}>No confirmed items yet.</div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
+                  {["Label", "Type", "Asset Code", "Serial", "Removed From", "Condemned On", "Kept Until", "Document"].map(h => (
+                    <th key={h} style={th}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {confirmedShown.map(item => (
+                  <tr
+                    key={item.id}
+                    onClick={() => onSelectItem(item)}
+                    style={{ borderBottom: "1px solid #f1f5f9", cursor: "pointer", verticalAlign: "top" }}
+                  >
+                    <td style={{ ...td, color: "#4f46e5" }}>{item.label}</td>
+                    {typeCell(item.type)}
+                    <td style={td}>{item.assetCode || "—"}</td>
+                    <td style={td}>{item.serial || "—"}</td>
+                    <td style={{ ...td, color: "#475569" }}>{item.location}</td>
+                    <td style={{ ...td, color: "#475569", whiteSpace: "nowrap" }}>{item.condemnedAt ? fmtDate(item.condemnedAt) : "—"}</td>
+                    <td style={{ ...td, color: "#94a3b8", whiteSpace: "nowrap" }}>{keptUntil(item.condemnedAt)}</td>
+                    <td style={td} onClick={e => e.stopPropagation()}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-start" }}>
+                        {item.condemnDocs.map(doc => (
+                          <span key={doc.id} style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
+                            <a href={doc.url} target="_blank" rel="noopener noreferrer" style={{ color: "#4f46e5", textDecoration: "none" }}>
+                              📄 {doc.fileName}
+                            </a>
+                            {isAdmin && (
+                              <button
+                                className="btn"
+                                title="Remove document"
+                                disabled={busyId === item.id}
+                                onClick={() => removeDoc(item, doc)}
+                                style={{ padding: "0 5px", fontSize: 10, lineHeight: "16px" }}
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </span>
+                        ))}
+                        {item.condemnDocs.length === 0 && (
+                          <span style={{ color: "#d97706" }}>No document</span>
+                        )}
+                        {isAdmin && (
+                          <button
+                            className="btn"
+                            disabled={busyId === item.id}
+                            onClick={() => pickFile([item.id], false)}
+                            title={DOC_HINT}
+                            style={{ padding: "2px 8px", fontSize: 10 }}
+                          >
+                            {busyId === item.id ? "Uploading..." : "📎 Add document"}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {confirmedShown.length === 0 && (
+              <div style={{ color: "#94a3b8", fontSize: 11, padding: 12 }}>No confirmed items match your search.</div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
