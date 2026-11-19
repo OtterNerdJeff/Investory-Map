@@ -103,6 +103,18 @@ export async function PUT(req: NextRequest, { params }: Params) {
       data.warrantyEnd = input.warrantyEnd ? new Date(input.warrantyEnd) : null;
     }
 
+    // An item out on loan can't sit in the condemned room at the same time.
+    if (
+      data.status === "Waiting for Condemnation" &&
+      existing.status !== "Waiting for Condemnation" &&
+      existing.isLoaned
+    ) {
+      return NextResponse.json(
+        { error: "This item is on loan. Return it first." },
+        { status: 400 }
+      );
+    }
+
     // Auto-route condemned (see CLAUDE.md "Auto-routing to Condemned").
     if (
       data.status === "Waiting for Condemnation" &&

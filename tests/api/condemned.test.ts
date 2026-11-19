@@ -8,8 +8,9 @@ vi.mock("@/lib/auth-guard", async () => {
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    item: { findMany: vi.fn(), findFirst: vi.fn(), deleteMany: vi.fn() },
-    condemnDoc: { create: vi.fn(), findFirst: vi.fn(), delete: vi.fn() },
+    item: { findMany: vi.fn(), findFirst: vi.fn(), deleteMany: vi.fn(), update: vi.fn() },
+    condemnDoc: { create: vi.fn(), findFirst: vi.fn(), findMany: vi.fn(), delete: vi.fn(), count: vi.fn() },
+    $transaction: vi.fn(async (ops: Promise<unknown>[]) => Promise.all(ops)),
   },
 }));
 
@@ -22,12 +23,25 @@ import { purgeExpiredCondemned, purgeCutoff, purgeDateFor } from "@/lib/condemne
 import { GET as GET_CONDEMNED } from "@/app/api/condemned/route";
 import { POST as POST_DOC } from "@/app/api/items/[itemId]/condemn-docs/route";
 import { DELETE as DELETE_DOC } from "@/app/api/condemn-docs/[docId]/route";
+import { POST as POST_CONFIRM } from "@/app/api/condemned/confirm/route";
+import { PUT as PUT_ITEM } from "@/app/api/items/[itemId]/route";
+
+// vi.clearAllMocks() keeps implementations, so set the defaults each time.
+function resetPrismaDefaults() {
+  vi.clearAllMocks();
+  (prisma.$transaction as any).mockImplementation(async (ops: Promise<unknown>[]) => Promise.all(ops));
+  (prisma.condemnDoc.findMany as any).mockResolvedValue([]);
+  (prisma.condemnDoc.count as any).mockResolvedValue(0);
+  (prisma.condemnDoc.create as any).mockImplementation(async (a: any) => ({ id: `d_${a.data.itemId}`, ...a.data }));
+  (prisma.item.update as any).mockImplementation(async (a: any) => ({ id: a.where.id, ...a.data }));
+  (prisma.item.findFirst as any).mockResolvedValue(null);
+}
 
 const admin = { id: "u1", name: "ICT", role: "SCHOOL_ADMIN", schoolId: "sch_1" };
 const teacher = { id: "u2", name: "T", role: "USER", schoolId: "sch_1" };
 
 describe("condemned retention", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(resetPrismaDefaults);
 
   it("keeps records for exactly 5 years", () => {
     const now = new Date("2026-11-18T00:00:00Z");
@@ -91,7 +105,7 @@ describe("GET /api/condemned", () => {
 });
 
 describe("condemned PDFs", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(resetPrismaDefaults);
 
   it("blocks teachers from attaching PDFs", async () => {
     (requireSession as any).mockResolvedValue(teacher);
@@ -142,6 +156,195 @@ describe("condemned PDFs", () => {
     expect(res.status).toBe(200);
     expect(prisma.condemnDoc.delete).toHaveBeenCalledWith({ where: { id: "d1" } });
     expect(deleteFile).toHaveBeenCalledWith("https://cdn/documents/a.pdf");
+  });
+});
+
+describe("condemnation workflow", () => {
+  beforeEach(resetPrismaDefaults);
+
+  const doc = { url: "https://cdn/documents/form.pdf", fileName: "Form.pdf" };
+  const confirmReq = (itemIds: string[]) =>
+    new NextRequest("http://localhost/api/condemned/confirm", {
+      method: "POST",
+      body: JSON.stringify({ itemIds, ...doc }),
+    });
+  const pendingItem = (id: string, prevLocation: string | null = "ITLR") => ({
+    id,
+    label: id,
+    schoolId: "sch_1",
+    status: "Waiting for Condemnation",
+    locationName: "Condemned / Pending Disposal",
+    prevLocation,
+  });
+
+  it("blocks teachers from confirming", async () => {
+    (requireSession as any).mockResolvedValue(teacher);
+    const res = await POST_CONFIRM(confirmReq(["i1"]));
+    expect(res.status).toBe(403);
+    expect(prisma.item.findMany).not.toHaveBeenCalled();
+  });
+
+  it("attaches one document to many pending items and confirms them all", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.item.findMany as any).mockResolvedValue([pendingItem("i1"), pendingItem("i2", null)]);
+
+    const res = await POST_CONFIRM(confirmReq(["i1", "i2", "i1"]));
+    const data = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(data).toMatchObject({ attached: 2, confirmed: 2 });
+    // Duplicate ids are collapsed.
+    expect((prisma.item.findMany as any).mock.calls[0][0].where).toEqual({ id: { in: ["i1", "i2"] } });
+    // One row per item, all pointing at the same uploaded file.
+    const created = (prisma.condemnDoc.create as any).mock.calls.map((c: any[]) => c[0].data);
+    expect(created).toEqual([
+      { schoolId: "sch_1", itemId: "i1", url: doc.url, fileName: "Form.pdf", uploadedBy: "ICT" },
+      { schoolId: "sch_1", itemId: "i2", url: doc.url, fileName: "Form.pdf", uploadedBy: "ICT" },
+    ]);
+    const updates = (prisma.item.update as any).mock.calls.map((c: any[]) => c[0]);
+    expect(updates[0]).toMatchObject({
+      where: { id: "i1" },
+      data: { status: "Condemned", locationName: "ITLR", prevLocation: null },
+    });
+    expect(updates[0].data.condemnedAt).toBeInstanceOf(Date);
+    // No remembered room: falls back to "Spare", like a manual status change.
+    expect(updates[1].data.locationName).toBe("Spare");
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("adds a document to an already condemned item without touching it", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.item.findMany as any).mockResolvedValue([
+      { id: "i1", label: "i1", schoolId: "sch_1", status: "Condemned", locationName: "ITLR", prevLocation: null },
+    ]);
+    const res = await POST_CONFIRM(confirmReq(["i1"]));
+    expect(res.status).toBe(201);
+    expect(await res.json()).toMatchObject({ attached: 1, confirmed: 0 });
+    expect(prisma.item.update).not.toHaveBeenCalled();
+  });
+
+  it("changes nothing if any item is from another school", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.item.findMany as any).mockResolvedValue([pendingItem("i1"), { ...pendingItem("i2"), schoolId: "sch_2" }]);
+    const res = await POST_CONFIRM(confirmReq(["i1", "i2"]));
+    expect(res.status).toBe(403);
+    expect(prisma.condemnDoc.create).not.toHaveBeenCalled();
+    expect(prisma.item.update).not.toHaveBeenCalled();
+  });
+
+  it("changes nothing if an item is missing", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.item.findMany as any).mockResolvedValue([pendingItem("i1")]);
+    const res = await POST_CONFIRM(confirmReq(["i1", "gone"]));
+    expect(res.status).toBe(404);
+    expect(prisma.condemnDoc.create).not.toHaveBeenCalled();
+  });
+
+  it("rejects items that are not on the condemn list", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.item.findMany as any).mockResolvedValue([
+      pendingItem("i1"),
+      { id: "i2", label: "Projector 2", schoolId: "sch_1", status: "Operational", locationName: "ITLR", prevLocation: null },
+    ]);
+    const res = await POST_CONFIRM(confirmReq(["i1", "i2"]));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toContain("Projector 2");
+    expect(prisma.condemnDoc.create).not.toHaveBeenCalled();
+  });
+
+  it("requires at least one item", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    const res = await POST_CONFIRM(confirmReq([]));
+    expect(res.status).toBe(400);
+  });
+
+  it("confirms a pending item when a document is attached to it alone", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.item.findFirst as any).mockResolvedValue(pendingItem("i1"));
+    const req = new NextRequest("http://localhost/api/items/i1/condemn-docs", {
+      method: "POST",
+      body: JSON.stringify(doc),
+    });
+    const res = await POST_DOC(req, { params: Promise.resolve({ itemId: "i1" }) });
+    expect(res.status).toBe(201);
+    expect((prisma.item.update as any).mock.calls[0][0]).toMatchObject({
+      where: { id: "i1" },
+      data: { status: "Condemned", locationName: "ITLR" },
+    });
+  });
+
+  const deleteDoc = () =>
+    DELETE_DOC(new NextRequest("http://localhost/api/condemn-docs/d1", { method: "DELETE" }), {
+      params: Promise.resolve({ docId: "d1" }),
+    });
+
+  it("sends a condemned item back to pending when its last document is removed", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.condemnDoc.findFirst as any).mockResolvedValue({ id: "d1", schoolId: "sch_1", itemId: "i1", url: doc.url });
+    (prisma.condemnDoc.count as any).mockResolvedValue(0);
+    (prisma.item.findFirst as any).mockResolvedValue({ id: "i1", status: "Condemned", locationName: "ITLR", prevLocation: null });
+
+    const res = await deleteDoc();
+
+    expect(await res.json()).toEqual({ ok: true, backToPending: true });
+    expect(prisma.item.update).toHaveBeenCalledWith({
+      where: { id: "i1" },
+      data: {
+        status: "Waiting for Condemnation",
+        condemnedAt: null,
+        locationName: "Condemned / Pending Disposal",
+        prevLocation: "ITLR",
+      },
+    });
+  });
+
+  it("keeps an item confirmed while it still has another document", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.condemnDoc.findFirst as any).mockResolvedValue({ id: "d1", schoolId: "sch_1", itemId: "i1", url: doc.url });
+    (prisma.condemnDoc.count as any).mockResolvedValue(1);
+
+    const res = await deleteDoc();
+
+    expect(await res.json()).toEqual({ ok: true, backToPending: false });
+    expect(prisma.item.update).not.toHaveBeenCalled();
+  });
+
+  it("keeps the stored file while another item still uses it", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.condemnDoc.findFirst as any).mockResolvedValue({ id: "d1", schoolId: "sch_1", itemId: "i1", url: doc.url });
+    (prisma.condemnDoc.count as any).mockResolvedValue(1);
+    (prisma.condemnDoc.findMany as any).mockResolvedValue([{ url: doc.url }]);
+
+    await deleteDoc();
+
+    expect(prisma.condemnDoc.delete).toHaveBeenCalledWith({ where: { id: "d1" } });
+    expect(deleteFile).not.toHaveBeenCalled();
+  });
+
+  it("purge keeps a shared document that an unexpired item still uses", async () => {
+    (prisma.item.findMany as any).mockResolvedValue([
+      { id: "i1", condemnDocs: [{ url: doc.url }, { url: "https://cdn/documents/own.pdf" }], faults: [], faultReports: [], loanHistory: [] },
+    ]);
+    (prisma.condemnDoc.findMany as any).mockResolvedValue([{ url: doc.url }]);
+
+    await purgeExpiredCondemned("sch_1");
+
+    expect((deleteFile as any).mock.calls.map((c: unknown[]) => c[0])).toEqual(["https://cdn/documents/own.pdf"]);
+  });
+
+  it("will not send an item on loan to the condemn list", async () => {
+    (requireSession as any).mockResolvedValue(admin);
+    (prisma.item.findFirst as any).mockResolvedValue({
+      id: "i1", schoolId: "sch_1", status: "Operational", locationName: "Mr Tan", isLoaned: true, prevLocation: null,
+    });
+    const req = new NextRequest("http://localhost/api/items/i1", {
+      method: "PUT",
+      body: JSON.stringify({ status: "Waiting for Condemnation" }),
+    });
+    const res = await PUT_ITEM(req, { params: Promise.resolve({ itemId: "i1" }) });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toContain("on loan");
+    expect(prisma.item.update).not.toHaveBeenCalled();
   });
 });
 

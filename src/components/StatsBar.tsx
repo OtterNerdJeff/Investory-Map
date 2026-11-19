@@ -21,7 +21,7 @@ export default function StatsBar({ stats, onClickStat }: StatsBarProps) {
     { label: "OK", v: stats.operational, c: "#16a34a" },
     { label: "Faulty", v: stats.faulty, c: "#dc2626" },
     { label: "Maint.", v: stats.maintenance, c: "#d97706" },
-    { label: "Condemned", v: stats.condemned, c: "#c2410c" },
+    { label: "To Condemn", v: stats.condemned, c: "#c2410c" },
     { label: "On Loan", v: stats.loaned, c: "#7c3aed" },
     { label: "Open Faults", v: stats.openFaults, c: "#c2410c" },
     { label: "Expiring ⚠", v: stats.expiringSoon, c: "#d97706" },
@@ -34,7 +34,7 @@ export default function StatsBar({ stats, onClickStat }: StatsBarProps) {
         <div
           key={s.label}
           onClick={() => onClickStat(s.label)}
-          title={`Click to filter by ${s.label}`}
+          title={`Click to view ${s.label}`}
           style={{
             background: "#ffffff",
             border: "1px solid #e2e8f0",

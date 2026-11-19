@@ -3,6 +3,8 @@ interface TabNavProps {
   setTab: (t: string) => void;
   faultReportCount?: number;
   condemnedCount?: number;
+  /** Items waiting for a condemnation document. */
+  condemnPendingCount?: number;
 }
 
 const TABS: [string, string][] = [
@@ -13,7 +15,7 @@ const TABS: [string, string][] = [
   ["condemned", "🗑 Condemned Items"],
 ];
 
-export default function TabNav({ tab, setTab, faultReportCount, condemnedCount }: TabNavProps) {
+export default function TabNav({ tab, setTab, faultReportCount, condemnedCount, condemnPendingCount }: TabNavProps) {
   return (
     <div style={{ borderBottom: "1px solid #e2e8f0", padding: "0 16px", display: "flex", gap: 2, flexShrink: 0, overflowX: "auto" }}>
       {TABS.map(([k, l]) => (
@@ -32,6 +34,23 @@ export default function TabNav({ tab, setTab, faultReportCount, condemnedCount }
               verticalAlign: "top",
             }}>
               {faultReportCount}
+            </span>
+          )}
+          {k === "condemned" && condemnPendingCount !== undefined && condemnPendingCount > 0 && (
+            <span
+              title="Waiting for document"
+              style={{
+                marginLeft: 4,
+                background: "#f59e0b",
+                color: "#ffffff",
+                fontSize: 9,
+                fontWeight: 700,
+                padding: "1px 5px",
+                borderRadius: 99,
+                verticalAlign: "top",
+              }}
+            >
+              {condemnPendingCount}
             </span>
           )}
           {k === "condemned" && condemnedCount !== undefined && condemnedCount > 0 && (
